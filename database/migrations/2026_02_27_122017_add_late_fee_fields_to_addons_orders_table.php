@@ -7,6 +7,9 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up(): void
     {
+        if (! Schema::hasTable('addons_orders')) {
+            return;
+        }
         Schema::table('addons_orders', function (Blueprint $table) {
             if (! Schema::hasColumn('addons_orders', 'late_fee')) {
                 $table->decimal('late_fee', 10, 2)->default(0)->after('total');
@@ -25,6 +28,9 @@ return new class extends Migration {
 
     public function down(): void
     {
+        if (! Schema::hasTable('addons_orders')) {
+            return;
+        }
         Schema::table('addons_orders', function (Blueprint $table) {
             $table->dropColumn([
                 'late_fee',

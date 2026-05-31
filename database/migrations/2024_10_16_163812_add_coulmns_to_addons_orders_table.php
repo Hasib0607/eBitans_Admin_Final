@@ -12,6 +12,9 @@ return new class extends Migration {
      */
     public function up()
     {
+        if (! Schema::hasTable('addons_orders')) {
+            return;
+        }
         Schema::table('addons_orders', function (Blueprint $table) {
             if (! Schema::hasColumn('addons_orders', 'package')) {
                 $table->longText('package')->after('addons')->nullable();
@@ -26,6 +29,9 @@ return new class extends Migration {
      */
     public function down()
     {
+        if (! Schema::hasTable('addons_orders')) {
+            return;
+        }
         Schema::table('addons_orders', function (Blueprint $table) {
             if (Schema::hasColumn('addons_orders', 'package')) {
                 $table->dropColumn('package');

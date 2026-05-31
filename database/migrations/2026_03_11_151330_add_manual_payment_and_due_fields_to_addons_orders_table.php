@@ -8,6 +8,9 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (! Schema::hasTable('addons_orders')) {
+            return;
+        }
         Schema::table('addons_orders', function (Blueprint $table) {
             if (! Schema::hasColumn('addons_orders', 'manual_discount')) {
                 $table->decimal('manual_discount', 10, 2)->default(0)->after('late_fee_overdue_days');
@@ -41,6 +44,9 @@ return new class extends Migration
 
     public function down(): void
     {
+        if (! Schema::hasTable('addons_orders')) {
+            return;
+        }
         Schema::table('addons_orders', function (Blueprint $table) {
             $table->dropColumn([
                 'manual_discount',

@@ -12,6 +12,9 @@
          */
         public function up()
         {
+            if (! Schema::hasTable('addons')) {
+                return;
+            }
             Schema::table('addons', function (Blueprint $table) {
                 if (! Schema::hasColumn('addons', 'currency_id')) {
                     $table->bigInteger('currency_id')->default(1)->after('id')->index();
@@ -26,8 +29,8 @@
          */
         public function down()
         {
-            Schema::table('addons', function (Blueprint $table) {
-                //
-            });
+            if (! Schema::hasTable('addons')) {
+                return;
+            }
         }
     };

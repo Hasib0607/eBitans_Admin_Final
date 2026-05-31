@@ -12,6 +12,9 @@
          */
         public function up()
         {
+            if (! Schema::hasTable('addons_expireds')) {
+                return;
+            }
             Schema::table('addons_expireds', function (Blueprint $table) {
                 if (! Schema::hasColumn('addons_expireds', 'currency_id')) {
                     $table->bigInteger('currency_id')->default(1)->after('id')->index();
@@ -26,8 +29,8 @@
          */
         public function down()
         {
-            Schema::table('addons_expireds', function (Blueprint $table) {
-                //
-            });
+            if (! Schema::hasTable('addons_expireds')) {
+                return;
+            }
         }
     };

@@ -12,6 +12,9 @@ return new class extends Migration {
      */
     public function up()
     {
+        if (! Schema::hasTable('addons_expireds')) {
+            return;
+        }
         Schema::table('addons_expireds', function (Blueprint $table) {
             if (! Schema::hasColumn('addons_expireds', 'pos_plan_id')) {
                 $table->bigInteger('pos_plan_id')->after('addons_id')->nullable();
@@ -26,6 +29,9 @@ return new class extends Migration {
      */
     public function down()
     {
+        if (! Schema::hasTable('addons_expireds')) {
+            return;
+        }
         Schema::table('addons_expireds', function (Blueprint $table) {
             if (Schema::hasColumn('addons_expireds', 'pos_plan_id')) {
                 $table->dropColumn('pos_plan_id');

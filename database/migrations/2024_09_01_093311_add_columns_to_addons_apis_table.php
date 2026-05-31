@@ -13,6 +13,9 @@ return new class extends Migration
      */
     public function up()
     {
+        if (! Schema::hasTable('addons_apis')) {
+            return;
+        }
         Schema::table('addons_apis', function (Blueprint $table) {
             if (! Schema::hasColumn('addons_apis', 'usd_price')) {
                 $table->string('usd_price')->nullable()->after('price');
@@ -30,6 +33,9 @@ return new class extends Migration
      */
     public function down()
     {
+        if (! Schema::hasTable('addons_apis')) {
+            return;
+        }
         Schema::table('addons_apis', function (Blueprint $table) {
             if (Schema::hasColumn('addons_apis', 'usd_price')) {
                 $table->dropColumn('usd_price');

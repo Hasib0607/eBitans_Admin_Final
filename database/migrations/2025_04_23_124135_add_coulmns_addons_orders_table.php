@@ -12,6 +12,9 @@ return new class extends Migration {
      */
     public function up()
     {
+        if (! Schema::hasTable('addons_orders')) {
+            return;
+        }
         Schema::table('addons_orders', function (Blueprint $table) {
             if (! Schema::hasColumn('addons_orders', 'paid_registration')) {
                 $table->tinyInteger('paid_registration')->after('status')->default(0);
@@ -26,6 +29,9 @@ return new class extends Migration {
      */
     public function down()
     {
+        if (! Schema::hasTable('addons_orders')) {
+            return;
+        }
         Schema::table('addons_orders', function (Blueprint $table) {
             if (Schema::hasColumn('addons_orders', 'paid_registration')) {
                 $table->dropColumn('paid_registration');
