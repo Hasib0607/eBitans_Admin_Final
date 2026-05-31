@@ -17,8 +17,7 @@ return new class extends Migration {
                 $table->id();
                 $table->string('name');
                 $table->string('link');
-                $table->string('category_id')->nullable();
-                $table->index('category_id');
+                $table->json('category_id')->nullable();
                 $table->string('banner');
                 $table->string('status');
                 $table->string('position');
