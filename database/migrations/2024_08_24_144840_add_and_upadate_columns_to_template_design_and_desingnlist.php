@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration {
@@ -18,7 +19,7 @@ return new class extends Migration {
         Schema::table('designlists', function (Blueprint $table) {
             // Check both columns before renaming to avoid duplicate-column errors.
             if (Schema::hasColumn('designlists', 'title_bg') && ! Schema::hasColumn('designlists', 'button_color')) {
-                DB::statement('ALTER TABLE designlists CHANGE title_bg button_color VARCHAR(50)');
+                $this->renameDesignlistColumn('title_bg', 'button_color', 'VARCHAR(50)');
             }
 
             // Add 'button' column only if it doesn't already exist
@@ -73,7 +74,7 @@ return new class extends Migration {
 
             // Check both columns before renaming it back to 'title_bg'
             if (Schema::hasColumn('designlists', 'button_color') && ! Schema::hasColumn('designlists', 'title_bg')) {
-                DB::statement('ALTER TABLE designlists CHANGE button_color title_bg VARCHAR(255)');
+                $this->renameDesignlistColumn('button_color', 'title_bg', 'VARCHAR(255)');
             }
         });
 
@@ -98,5 +99,15 @@ return new class extends Migration {
                 $table->dropColumn('contact');
             }
         });
+    }
+
+    private function renameDesignlistColumn(string $from, string $to, string $mysqlType): void
+    {
+        if (DB::connection()->getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE designlists CHANGE {$from} {$to} {$mysqlType}");
+            return;
+        }
+
+        DB::statement("ALTER TABLE designlists RENAME COLUMN {$from} TO {$to}");
     }
 };

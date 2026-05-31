@@ -13,21 +13,40 @@ return new class extends Migration {
      */
     public function up()
     {
-        if (! $this->indexExists('tempositions', 'idx_template_id')) {
+        if ($this->canIndex('tempositions', ['template_id'], 'idx_template_id')) {
             Schema::table('tempositions', function (Blueprint $table) {
                 $table->index('template_id', 'idx_template_id');
             });
         }
 
-        if (! $this->indexExists('design_positions', 'idx_store_id')) {
+        if ($this->canIndex('design_positions', ['store_id'], 'idx_store_id')) {
             Schema::table('design_positions', function (Blueprint $table) {
                 $table->index('store_id', 'idx_store_id');
             });
         }
     }
 
+    private function canIndex(string $table, array $columns, string $index): bool
+    {
+        if (! Schema::hasTable($table) || $this->indexExists($table, $index)) {
+            return false;
+        }
+
+        foreach ($columns as $column) {
+            if (! Schema::hasColumn($table, $column)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     private function indexExists(string $table, string $index): bool
     {
+        if (DB::connection()->getDriverName() === 'pgsql') {
+            return ! empty(DB::select('select 1 from pg_indexes where schemaname = current_schema() and indexname = ? limit 1', [$index]));
+        }
+
         return ! empty(DB::select("SHOW INDEX FROM `{$table}` WHERE Key_name = ?", [$index]));
     }
 
@@ -38,12 +57,20 @@ return new class extends Migration {
      */
     public function down()
     {
-        Schema::table('tempositions', function (Blueprint $table) {
-            $table->dropIndex('idx_template_id');
-        });
+        if (Schema::hasTable('tempositions')) {
+            Schema::table('tempositions', function (Blueprint $table) {
+                if ($this->indexExists('tempositions', 'idx_template_id')) {
+                    $table->dropIndex('idx_template_id');
+                }
+            });
+        }
 
-        Schema::table('design_positions', function (Blueprint $table) {
-            $table->dropIndex('idx_store_id');
-        });
+        if (Schema::hasTable('design_positions')) {
+            Schema::table('design_positions', function (Blueprint $table) {
+                if ($this->indexExists('design_positions', 'idx_store_id')) {
+                    $table->dropIndex('idx_store_id');
+                }
+            });
+        }
     }
 };
