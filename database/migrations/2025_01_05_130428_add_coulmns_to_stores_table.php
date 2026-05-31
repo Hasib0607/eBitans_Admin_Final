@@ -12,6 +12,9 @@ return new class extends Migration {
      */
     public function up()
     {
+        if (! Schema::hasTable('stores')) {
+            return;
+        }
         Schema::table('stores', function (Blueprint $table) {
             if (! Schema::hasColumn('stores', 'renew_date')) {
                 $table->date('renew_date')->after('purchase_date')->nullable();
@@ -26,6 +29,9 @@ return new class extends Migration {
      */
     public function down()
     {
+        if (! Schema::hasTable('stores')) {
+            return;
+        }
         Schema::table('stores', function (Blueprint $table) {
             if (Schema::hasColumn('stores', 'renew_date')) {
                 $table->dropColumn('renew_date');

@@ -18,11 +18,13 @@ return new class extends Migration {
             $table->index('email');
         });
 
-        Schema::table('stores', function (Blueprint $table) {
-            $table->index('user_id');
-            $table->index('name');
-            $table->index('url');
-        });
+        if (Schema::hasTable('stores')) {
+            Schema::table('stores', function (Blueprint $table) {
+                $table->index('user_id');
+                $table->index('name');
+                $table->index('url');
+            });
+        }
     }
 
     /**
@@ -38,10 +40,12 @@ return new class extends Migration {
             $table->dropIndex(['email']);
         });
 
-        Schema::table('stores', function (Blueprint $table) {
-            $table->dropIndex(['user_id']);
-            $table->dropIndex(['name']);
-            $table->dropIndex(['url']);
-        });
+        if (Schema::hasTable('stores')) {
+            Schema::table('stores', function (Blueprint $table) {
+                $table->dropIndex(['user_id']);
+                $table->dropIndex(['name']);
+                $table->dropIndex(['url']);
+            });
+        }
     }
 };

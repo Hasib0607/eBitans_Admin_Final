@@ -13,7 +13,7 @@ return new class extends Migration {
      */
     public function up()
     {
-        if (! $this->indexExists('stores', 'idx_expiry')) {
+        if (Schema::hasTable('stores') && ! $this->indexExists('stores', 'idx_expiry')) {
             Schema::table('stores', function (Blueprint $table) {
                 $table->index('expiry_date', 'idx_expiry');
             });
@@ -45,9 +45,11 @@ return new class extends Migration {
      */
     public function down()
     {
-        Schema::table('stores', function (Blueprint $table) {
-            $table->dropIndex('idx_expiry');
-        });
+        if (Schema::hasTable('stores')) {
+            Schema::table('stores', function (Blueprint $table) {
+                $table->dropIndex('idx_expiry');
+            });
+        }
 
         Schema::table('products', function (Blueprint $table) {
             $table->dropIndex('idx_price');

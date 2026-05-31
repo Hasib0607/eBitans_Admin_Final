@@ -12,6 +12,9 @@ return new class extends Migration {
      */
     public function up()
     {
+        if (! Schema::hasTable('stores')) {
+            return;
+        }
         Schema::table('stores', function (Blueprint $table) {
             if (! Schema::hasColumn('stores', 'paid_registration')) {
                 $table->tinyInteger('paid_registration')->after('status')->default(0);
@@ -26,6 +29,9 @@ return new class extends Migration {
      */
     public function down()
     {
+        if (! Schema::hasTable('stores')) {
+            return;
+        }
         Schema::table('stores', function (Blueprint $table) {
             if (Schema::hasColumn('stores', 'paid_registration')) {
                 $table->dropColumn('paid_registration');

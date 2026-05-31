@@ -12,6 +12,9 @@ return new class extends Migration {
      */
     public function up()
     {
+        if (! Schema::hasTable('stores')) {
+            return;
+        }
         Schema::table('stores', function (Blueprint $table) {
             if (! Schema::hasColumn('stores', 'dropship_commission')) {
                 $table->unsignedInteger('dropship_commission')->after('expiry_date')->default(3);
@@ -32,6 +35,9 @@ return new class extends Migration {
      */
     public function down()
     {
+        if (! Schema::hasTable('stores')) {
+            return;
+        }
         Schema::table('stores', function (Blueprint $table) {
             $table->dropColumn(['dropship_commission', 'order_pull', 'overflow_commission']);
         });

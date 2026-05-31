@@ -12,7 +12,7 @@
          */
         public function up()
         {
-            if (! Schema::hasColumn('stores', 'currency_rate')) {
+            if (Schema::hasTable('stores') && ! Schema::hasColumn('stores', 'currency_rate')) {
                 Schema::table('stores', function (Blueprint $table) {
                     $table->decimal('currency_rate', 10, 4)->default(117.56)->after('currency');
                 });
@@ -26,8 +26,8 @@
          */
         public function down()
         {
-            Schema::table('stores', function (Blueprint $table) {
-                //
-            });
+            if (! Schema::hasTable('stores')) {
+                return;
+            }
         }
     };

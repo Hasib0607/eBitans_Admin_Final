@@ -12,6 +12,9 @@ return new class extends Migration {
      */
     public function up()
     {
+        if (! Schema::hasTable('stores')) {
+            return;
+        }
         Schema::table('stores', function (Blueprint $table) {
             if (! Schema::hasColumn('stores', 'analytic_email')) {
                 $table->string('analytic_email')->after('isCFileDelete')->nullable();
@@ -26,6 +29,9 @@ return new class extends Migration {
      */
     public function down()
     {
+        if (! Schema::hasTable('stores')) {
+            return;
+        }
         Schema::table('stores', function (Blueprint $table) {
             if (Schema::hasColumn('stores', 'analytic_email')) {
                 $table->dropColumn('analytic_email');

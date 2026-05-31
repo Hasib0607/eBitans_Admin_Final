@@ -12,6 +12,9 @@ return new class extends Migration {
      */
     public function up()
     {
+        if (! Schema::hasTable('stores')) {
+            return;
+        }
         Schema::table('stores', function (Blueprint $table) {
             if (! Schema::hasColumn('stores', 'store_status')) {
                 $table->boolean('store_status')->after('status')->default(1)->comment("0=Inactive|1=Active");
@@ -26,6 +29,9 @@ return new class extends Migration {
      */
     public function down()
     {
+        if (! Schema::hasTable('stores')) {
+            return;
+        }
         Schema::table('stores', function (Blueprint $table) {
             if (Schema::hasColumn('stores', 'store_status')) {
                 $table->dropColumn('store_status');

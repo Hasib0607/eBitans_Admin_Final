@@ -12,6 +12,9 @@ return new class extends Migration {
      */
     public function up()
     {
+        if (! Schema::hasTable('stores')) {
+            return;
+        }
         Schema::table('stores', function (Blueprint $table) {
             if (! Schema::hasColumn('stores', 'isDomainDelete')) {
                 $table->tinyInteger('isDomainDelete')->after('pay_mail_status')->default(0)->comment("0=Not Delete|1=Delete");
@@ -29,6 +32,9 @@ return new class extends Migration {
      */
     public function down()
     {
+        if (! Schema::hasTable('stores')) {
+            return;
+        }
         Schema::table('stores', function (Blueprint $table) {
             if (Schema::hasColumn('stores', 'isDomainDelete')) {
                 $table->dropColumn('isDomainDelete');
