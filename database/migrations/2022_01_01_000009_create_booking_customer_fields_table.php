@@ -24,7 +24,7 @@ return new class extends Migration
             $table->text('uId');
             $table->integer('is_single');
             $table->timestamp('updated_at')->useCurrent();
-            $table->timestamp('created_at')->default('0000-00-00 00:00:00');
+            $table->timestamp('created_at')->nullable();
         });
     }
 

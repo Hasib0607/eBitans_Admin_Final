@@ -16,7 +16,7 @@ return new class extends Migration
             $table->increments('id');
             $table->text('name');
             $table->timestamp('created_at')->useCurrent();
-            $table->timestamp('updated_at')->default('0000-00-00 00:00:00');
+            $table->timestamp('updated_at')->nullable();
         });
     }
 
