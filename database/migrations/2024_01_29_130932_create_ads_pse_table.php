@@ -17,8 +17,8 @@ return new class extends Migration {
                 $table->id();
                 $table->string('name');
                 $table->string('link');
+                $table->string('category_id')->nullable();
                 $table->index('category_id');
-                $table->foreign('category_id')->references('id')->on('categories')->onDelete('cascade');
                 $table->string('banner');
                 $table->string('status');
                 $table->string('position');
