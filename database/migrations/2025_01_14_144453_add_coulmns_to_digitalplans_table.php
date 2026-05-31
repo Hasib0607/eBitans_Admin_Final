@@ -13,7 +13,9 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('digitalplans', function (Blueprint $table) {
-            $table->decimal('monthly_chat_support')->after('payment_processing_charge')->default(0);
+            if (! Schema::hasColumn('digitalplans', 'monthly_chat_support')) {
+                $table->decimal('monthly_chat_support')->after('payment_processing_charge')->default(0);
+            }
         });
     }
 

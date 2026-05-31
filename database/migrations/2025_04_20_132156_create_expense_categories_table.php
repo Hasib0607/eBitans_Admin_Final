@@ -12,12 +12,14 @@ return new class extends Migration {
      */
     public function up()
     {
-        Schema::create('expense_categories', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->unsignedInteger('store_id');
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('expense_categories')) {
+            Schema::create('expense_categories', function (Blueprint $table) {
+                $table->id();
+                $table->string('name');
+                $table->unsignedInteger('store_id');
+                $table->timestamps();
+            });
+        }
     }
 
     /**

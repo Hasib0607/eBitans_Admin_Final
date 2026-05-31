@@ -13,19 +13,21 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('customers', function (Blueprint $table) {
-            $table->id();
-            $table->string('uid')->nullable();
-            $table->string('name')->nullable();
-            $table->string('address')->nullable();
-            $table->string('plan_id')->nullable();
-            $table->string('template_id')->nullable();
-            $table->string('logo')->nullable();
-            $table->string('company_name')->nullable();
-            $table->string('phone')->nullable();
-            $table->string('referred_by')->nullable();
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('customers')) {
+            Schema::create('customers', function (Blueprint $table) {
+                $table->id();
+                $table->string('uid')->nullable();
+                $table->string('name')->nullable();
+                $table->string('address')->nullable();
+                $table->string('plan_id')->nullable();
+                $table->string('template_id')->nullable();
+                $table->string('logo')->nullable();
+                $table->string('company_name')->nullable();
+                $table->string('phone')->nullable();
+                $table->string('referred_by')->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
     /**

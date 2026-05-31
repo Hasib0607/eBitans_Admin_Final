@@ -13,17 +13,19 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('planorders', function (Blueprint $table) {
-            $table->id();
-            $table->string('plan_id')->nullable();
-            $table->string('customer_id')->nullable();
-            $table->string('active_date')->nullable();
-            $table->string('expiry_date')->nullable();
-            $table->string('total_amount')->nullable();
-            $table->string('total_month')->nullable();
-            $table->string('status')->nullable();
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('planorders')) {
+            Schema::create('planorders', function (Blueprint $table) {
+                $table->id();
+                $table->string('plan_id')->nullable();
+                $table->string('customer_id')->nullable();
+                $table->string('active_date')->nullable();
+                $table->string('expiry_date')->nullable();
+                $table->string('total_amount')->nullable();
+                $table->string('total_month')->nullable();
+                $table->string('status')->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
     /**

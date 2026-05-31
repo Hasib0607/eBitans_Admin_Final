@@ -12,13 +12,15 @@ return new class extends Migration {
      */
     public function up()
     {
-        Schema::create('website_setup_images', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('store_id')->nullable();
-            $table->unsignedBigInteger('product_id')->nullable();
-            $table->string('image');
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('website_setup_images')) {
+            Schema::create('website_setup_images', function (Blueprint $table) {
+                $table->id();
+                $table->unsignedBigInteger('store_id')->nullable();
+                $table->unsignedBigInteger('product_id')->nullable();
+                $table->string('image');
+                $table->timestamps();
+            });
+        }
     }
 
     /**

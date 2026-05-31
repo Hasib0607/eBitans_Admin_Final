@@ -13,9 +13,15 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('headersettings', function (Blueprint $table) {
-            $table->string('cod_text')->after('order_sms')->default("Cash On Delivery");
-            $table->string('bkash_text')->after('cod_text')->default("bKash Payment");
-            $table->string('ap_text')->after('bkash_text')->default("Advance Payment");
+            if (! Schema::hasColumn('headersettings', 'cod_text')) {
+                $table->string('cod_text')->after('order_sms')->default("Cash On Delivery");
+            }
+            if (! Schema::hasColumn('headersettings', 'bkash_text')) {
+                $table->string('bkash_text')->after('cod_text')->default("bKash Payment");
+            }
+            if (! Schema::hasColumn('headersettings', 'ap_text')) {
+                $table->string('ap_text')->after('bkash_text')->default("Advance Payment");
+            }
         });
     }
 

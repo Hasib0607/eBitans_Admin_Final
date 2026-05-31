@@ -13,9 +13,15 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('admin_blogs', function (Blueprint $table) {
-            $table->string('permalink')->nullable()->after('popular');
-            $table->unsignedBigInteger('user_id')->nullable()->after('permalink');
-            $table->unsignedBigInteger('store_id')->nullable()->after('user_id');
+            if (! Schema::hasColumn('admin_blogs', 'permalink')) {
+                $table->string('permalink')->nullable()->after('popular');
+            }
+            if (! Schema::hasColumn('admin_blogs', 'user_id')) {
+                $table->unsignedBigInteger('user_id')->nullable()->after('permalink');
+            }
+            if (! Schema::hasColumn('admin_blogs', 'store_id')) {
+                $table->unsignedBigInteger('store_id')->nullable()->after('user_id');
+            }
         });
     }
 

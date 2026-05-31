@@ -13,7 +13,9 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('superstaff_sales_commissions', function (Blueprint $table) {
-            $table->string('setup_amount')->after('setup_commission')->nullable();
+            if (! Schema::hasColumn('superstaff_sales_commissions', 'setup_amount')) {
+                $table->string('setup_amount')->after('setup_commission')->nullable();
+            }
         });
     }
 

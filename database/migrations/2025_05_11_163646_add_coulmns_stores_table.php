@@ -13,7 +13,9 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('stores', function (Blueprint $table) {
-            $table->string('category_id')->after('type')->nullable();
+            if (! Schema::hasColumn('stores', 'category_id')) {
+                $table->string('category_id')->after('type')->nullable();
+            }
         });
     }
 

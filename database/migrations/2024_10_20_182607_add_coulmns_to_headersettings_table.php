@@ -13,7 +13,9 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('headersettings', function (Blueprint $table) {
-            $table->double('affiliate_min_withdraw')->after('stock_out_qty')->default(0.00);
+            if (! Schema::hasColumn('headersettings', 'affiliate_min_withdraw')) {
+                $table->double('affiliate_min_withdraw')->after('stock_out_qty')->default(0.00);
+            }
         });
     }
 

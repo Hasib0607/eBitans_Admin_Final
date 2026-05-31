@@ -13,7 +13,9 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('store_designs', function (Blueprint $table) {
-            $table->string('link')->after('button_bg_color')->nullable();
+            if (! Schema::hasColumn('store_designs', 'link')) {
+                $table->string('link')->after('button_bg_color')->nullable();
+            }
         });
     }
 

@@ -12,14 +12,16 @@ return new class extends Migration {
      */
     public function up()
     {
-        Schema::create('support_queues', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('conversation_id')->constrained('chat_conversations', 'id')->cascadeOnDelete();
-            $table->foreignId('agent_id')->nullable()->constrained('users', 'id')->nullOnDelete();
-            $table->enum('status', ['waiting', 'assigned'])->default('waiting');
-            $table->timestamp('assigned_at')->nullable();
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('support_queues')) {
+            Schema::create('support_queues', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('conversation_id')->constrained('chat_conversations', 'id')->cascadeOnDelete();
+                $table->foreignId('agent_id')->nullable()->constrained('users', 'id')->nullOnDelete();
+                $table->enum('status', ['waiting', 'assigned'])->default('waiting');
+                $table->timestamp('assigned_at')->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
     /**

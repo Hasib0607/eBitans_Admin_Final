@@ -14,8 +14,12 @@ return new class extends Migration
     public function up()
     {
         Schema::table('campaigns', function (Blueprint $table) {
-            $table->string('campaign_type')->nullable();
-            $table->string('category')->nullable();
+            if (! Schema::hasColumn('campaigns', 'campaign_type')) {
+                $table->string('campaign_type')->nullable();
+            }
+            if (! Schema::hasColumn('campaigns', 'category')) {
+                $table->string('category')->nullable();
+            }
         });
     }
 

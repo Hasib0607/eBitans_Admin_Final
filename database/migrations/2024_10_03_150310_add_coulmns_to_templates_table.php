@@ -13,9 +13,15 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('templates', function (Blueprint $table) {
-            $table->string('blog')->after('offer')->nullable();
-            $table->string('contact')->after('blog')->nullable();
-            $table->string('announcement')->after('contact')->nullable();
+            if (! Schema::hasColumn('templates', 'blog')) {
+                $table->string('blog')->after('offer')->nullable();
+            }
+            if (! Schema::hasColumn('templates', 'contact')) {
+                $table->string('contact')->after('blog')->nullable();
+            }
+            if (! Schema::hasColumn('templates', 'announcement')) {
+                $table->string('announcement')->after('contact')->nullable();
+            }
         });
     }
 

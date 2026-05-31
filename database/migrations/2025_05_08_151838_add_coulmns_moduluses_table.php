@@ -13,7 +13,9 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('moduluses', function (Blueprint $table) {
-            $table->tinyInteger('modulus_type')->after('type')->default(0)->comment("0=Addon|1=Marketing");
+            if (! Schema::hasColumn('moduluses', 'modulus_type')) {
+                $table->tinyInteger('modulus_type')->after('type')->default(0)->comment("0=Addon|1=Marketing");
+            }
         });
     }
 

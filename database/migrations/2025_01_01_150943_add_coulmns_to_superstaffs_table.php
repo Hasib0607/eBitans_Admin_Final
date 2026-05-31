@@ -13,12 +13,18 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('superstaffs', function (Blueprint $table) {
-            $table->unsignedBigInteger('active_store')->after('status')->nullable();
-            $table->decimal('new_commission')->after('active_store')->default(10);
-            $table->decimal('renew_commission')->after('new_commission')->default(5);
-            $table->decimal('setup_commission')->after('renew_commission')->default(5);
-
-            $table->foreign('active_store')->references('id')->on('stores')->onDelete('cascade');
+            if (! Schema::hasColumn('superstaffs', 'active_store')) {
+                $table->unsignedBigInteger('active_store')->after('status')->nullable();
+            }
+            if (! Schema::hasColumn('superstaffs', 'new_commission')) {
+                $table->decimal('new_commission')->after('active_store')->default(10);
+            }
+            if (! Schema::hasColumn('superstaffs', 'renew_commission')) {
+                $table->decimal('renew_commission')->after('new_commission')->default(5);
+            }
+            if (! Schema::hasColumn('superstaffs', 'setup_commission')) {
+                $table->decimal('setup_commission')->after('renew_commission')->default(5);
+            }
         });
     }
 

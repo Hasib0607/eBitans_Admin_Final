@@ -13,7 +13,9 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('designs', function (Blueprint $table) {
-            $table->string('youtube')->after('testimonial')->nullable()->default("none");
+            if (! Schema::hasColumn('designs', 'youtube')) {
+                $table->string('youtube')->after('testimonial')->nullable()->default("none");
+            }
         });
     }
 

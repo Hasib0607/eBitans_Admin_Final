@@ -13,7 +13,9 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('paymentgateways', function (Blueprint $table) {
-            $table->string('client_id')->nullable()->after('app_secret');
+            if (! Schema::hasColumn('paymentgateways', 'client_id')) {
+                $table->string('client_id')->nullable()->after('app_secret');
+            }
         });
     }
 

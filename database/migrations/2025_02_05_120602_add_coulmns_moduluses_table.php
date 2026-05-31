@@ -13,7 +13,9 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('moduluses', function (Blueprint $table) {
-            $table->decimal('price_usd')->after('price')->default(0.00);
+            if (! Schema::hasColumn('moduluses', 'price_usd')) {
+                $table->decimal('price_usd')->after('price')->default(0.00);
+            }
         });
     }
 

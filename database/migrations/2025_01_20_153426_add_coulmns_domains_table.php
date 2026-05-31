@@ -13,7 +13,9 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('domains', function (Blueprint $table) {
-            $table->tinyInteger('deleteRequest')->after('buy_domain')->nullable();
+            if (! Schema::hasColumn('domains', 'deleteRequest')) {
+                $table->tinyInteger('deleteRequest')->after('buy_domain')->nullable();
+            }
         });
     }
 

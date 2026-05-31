@@ -13,7 +13,9 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('stores', function (Blueprint $table) {
-            $table->boolean('setup_status')->after('pay_mail_status')->default(0)->comment("0=Not Buy|1=Buy");
+            if (! Schema::hasColumn('stores', 'setup_status')) {
+                $table->boolean('setup_status')->after('pay_mail_status')->default(0)->comment("0=Not Buy|1=Buy");
+            }
         });
     }
 

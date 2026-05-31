@@ -13,6 +13,10 @@ return new class extends Migration
      */
     public function up()
     {
+        if (Schema::hasTable('addons_expireds')) {
+            return;
+        }
+
         Schema::create('addons_expireds', function (Blueprint $table) {
             $table->id();
             $table->bigInteger('user_id')->nullable();

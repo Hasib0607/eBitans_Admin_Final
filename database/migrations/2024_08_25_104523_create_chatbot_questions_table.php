@@ -12,13 +12,15 @@ return new class extends Migration {
      */
     public function up()
     {
-        Schema::create('chatbot_questions', function (Blueprint $table) {
-            $table->id();
-            $table->longText("question");
-            $table->tinyInteger("type")->default(0)->comment("0=Sales|1=Tech");
-            $table->tinyInteger('lang')->default('0')->comment("0=English|1=Bangla");
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('chatbot_questions')) {
+            Schema::create('chatbot_questions', function (Blueprint $table) {
+                $table->id();
+                $table->longText("question");
+                $table->tinyInteger("type")->default(0)->comment("0=Sales|1=Tech");
+                $table->tinyInteger('lang')->default('0')->comment("0=English|1=Bangla");
+                $table->timestamps();
+            });
+        }
     }
 
     /**

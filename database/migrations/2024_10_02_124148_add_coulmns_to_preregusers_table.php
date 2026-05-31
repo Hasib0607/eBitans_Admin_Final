@@ -13,7 +13,9 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('preregusers', function (Blueprint $table) {
-            $table->string('type')->after('store_id')->nullable();
+            if (! Schema::hasColumn('preregusers', 'type')) {
+                $table->string('type')->after('store_id')->nullable();
+            }
         });
     }
 

@@ -12,17 +12,19 @@ return new class extends Migration {
      */
     public function up()
     {
-        Schema::create('chat_visitors', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
-            $table->string('visitor_name')->nullable();
-            $table->string('visitor_email')->nullable();
-            $table->string('visitor_phone')->nullable();
-            $table->string('image')->nullable();
-            $table->string('session_token')->unique();
-            $table->boolean('is_register')->default(false);
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('chat_visitors')) {
+            Schema::create('chat_visitors', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
+                $table->string('visitor_name')->nullable();
+                $table->string('visitor_email')->nullable();
+                $table->string('visitor_phone')->nullable();
+                $table->string('image')->nullable();
+                $table->string('session_token')->unique();
+                $table->boolean('is_register')->default(false);
+                $table->timestamps();
+            });
+        }
     }
 
     /**

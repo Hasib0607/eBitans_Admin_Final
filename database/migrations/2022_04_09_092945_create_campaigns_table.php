@@ -13,17 +13,19 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('campaigns', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->date('start_date');
-            $table->date('end_date');
-            $table->string('discount_type');
-            $table->string('discount_amount');
-            $table->string('products');
-            $table->string('status');
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('campaigns')) {
+            Schema::create('campaigns', function (Blueprint $table) {
+                $table->id();
+                $table->string('name');
+                $table->date('start_date');
+                $table->date('end_date');
+                $table->string('discount_type');
+                $table->string('discount_amount');
+                $table->string('products');
+                $table->string('status');
+                $table->timestamps();
+            });
+        }
     }
 
     /**

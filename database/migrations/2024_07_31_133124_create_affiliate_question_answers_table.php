@@ -13,14 +13,16 @@ return new class extends Migration {
      */
     public function up()
     {
-        Schema::create('affiliate_question_answers', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->references('id')->on('users')->onDelete('cascade');
-            $table->foreignId('question_id')->references('id')->on('questions')->onDelete('cascade');
-            $table->string('answer');
-            $table->dateTime('answer_submitted_at')->default(DB::raw('CURRENT_TIMESTAMP'));
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('affiliate_question_answers')) {
+            Schema::create('affiliate_question_answers', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('user_id')->references('id')->on('users')->onDelete('cascade');
+                $table->foreignId('question_id')->references('id')->on('questions')->onDelete('cascade');
+                $table->string('answer');
+                $table->dateTime('answer_submitted_at')->default(DB::raw('CURRENT_TIMESTAMP'));
+                $table->timestamps();
+            });
+        }
     }
 
     /**

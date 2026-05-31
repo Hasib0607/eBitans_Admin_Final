@@ -13,7 +13,9 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('headersettings', function (Blueprint $table) {
-            $table->longText('custom_writing')->after('theme_lock')->nullable();
+            if (! Schema::hasColumn('headersettings', 'custom_writing')) {
+                $table->longText('custom_writing')->after('theme_lock')->nullable();
+            }
         });
     }
 

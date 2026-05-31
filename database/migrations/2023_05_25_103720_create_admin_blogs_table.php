@@ -13,18 +13,20 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('admin_blogs', function (Blueprint $table) {
-            $table->id();
-            $table->string('type')->nullable();
-            $table->text('title')->nullable();
-            $table->text('sub_title')->nullable();
-            $table->longText('description')->nullable();
-            $table->string('image')->nullable();
-            $table->integer('position')->nullable();
-            $table->string('status')->nullable();
-            $table->timestamps();
-            $table->softDeletes();
-        });
+        if (! Schema::hasTable('admin_blogs')) {
+            Schema::create('admin_blogs', function (Blueprint $table) {
+                $table->id();
+                $table->string('type')->nullable();
+                $table->text('title')->nullable();
+                $table->text('sub_title')->nullable();
+                $table->longText('description')->nullable();
+                $table->string('image')->nullable();
+                $table->integer('position')->nullable();
+                $table->string('status')->nullable();
+                $table->timestamps();
+                $table->softDeletes();
+            });
+        }
     }
 
     /**

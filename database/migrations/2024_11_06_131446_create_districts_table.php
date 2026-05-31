@@ -12,15 +12,17 @@ return new class extends Migration {
      */
     public function up()
     {
-        Schema::create('districts', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger("division_id");
-            $table->string("name");
-            $table->string("bn_name")->nullable();
-            $table->string("lat")->nullable();
-            $table->string("long")->nullable();
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('districts')) {
+            Schema::create('districts', function (Blueprint $table) {
+                $table->id();
+                $table->unsignedBigInteger("division_id");
+                $table->string("name");
+                $table->string("bn_name")->nullable();
+                $table->string("lat")->nullable();
+                $table->string("long")->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
     /**

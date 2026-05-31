@@ -12,20 +12,22 @@ return new class extends Migration {
      */
     public function up()
     {
-        Schema::create('couriers', function (Blueprint $table) {
-            $table->id();
-            $table->string('courier_name');
-            $table->string('courier_store_id')->nullable();
-            $table->string('username')->nullable();
-            $table->string('password')->nullable();
-            $table->string('api_key')->nullable();
-            $table->string('api_secret')->nullable();
-            $table->string('access_token')->nullable();
-            $table->bigInteger('store_id')->nullable();
-            $table->bigInteger('user_id')->nullable();
-            $table->tinyInteger('status')->default(0)->comment("0=Inactive|1=Active");
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('couriers')) {
+            Schema::create('couriers', function (Blueprint $table) {
+                $table->id();
+                $table->string('courier_name');
+                $table->string('courier_store_id')->nullable();
+                $table->string('username')->nullable();
+                $table->string('password')->nullable();
+                $table->string('api_key')->nullable();
+                $table->string('api_secret')->nullable();
+                $table->string('access_token')->nullable();
+                $table->bigInteger('store_id')->nullable();
+                $table->bigInteger('user_id')->nullable();
+                $table->tinyInteger('status')->default(0)->comment("0=Inactive|1=Active");
+                $table->timestamps();
+            });
+        }
     }
 
     /**

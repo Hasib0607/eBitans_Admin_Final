@@ -13,15 +13,33 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('notifications', function (Blueprint $table) {
-            $table->string('title')->after('id')->nullable();
-            $table->string('body')->after('title')->nullable();
-            $table->string('type')->after('body')->nullable();
-            $table->string('user_type')->after('type')->nullable();
-            $table->string('user_id')->after('user_type')->nullable();
-            $table->string('store_id')->after('user_id')->nullable();
-            $table->string('conversation_id')->after('store_id')->nullable();
-            $table->string('link')->after('store_id')->nullable();
-            $table->tinyInteger('view')->after('link')->default(0);
+            if (! Schema::hasColumn('notifications', 'title')) {
+                $table->string('title')->after('id')->nullable();
+            }
+            if (! Schema::hasColumn('notifications', 'body')) {
+                $table->string('body')->after('title')->nullable();
+            }
+            if (! Schema::hasColumn('notifications', 'type')) {
+                $table->string('type')->after('body')->nullable();
+            }
+            if (! Schema::hasColumn('notifications', 'user_type')) {
+                $table->string('user_type')->after('type')->nullable();
+            }
+            if (! Schema::hasColumn('notifications', 'user_id')) {
+                $table->string('user_id')->after('user_type')->nullable();
+            }
+            if (! Schema::hasColumn('notifications', 'store_id')) {
+                $table->string('store_id')->after('user_id')->nullable();
+            }
+            if (! Schema::hasColumn('notifications', 'conversation_id')) {
+                $table->string('conversation_id')->after('store_id')->nullable();
+            }
+            if (! Schema::hasColumn('notifications', 'link')) {
+                $table->string('link')->after('store_id')->nullable();
+            }
+            if (! Schema::hasColumn('notifications', 'view')) {
+                $table->tinyInteger('view')->after('link')->default(0);
+            }
         });
     }
 

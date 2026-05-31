@@ -12,12 +12,14 @@ return new class extends Migration {
      */
     public function up()
     {
-        Schema::create('plan_features', function (Blueprint $table) {
-            $table->id();
-            $table->bigInteger('plan_id')->unsigned();
-            $table->string('title', 35);
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('plan_features')) {
+            Schema::create('plan_features', function (Blueprint $table) {
+                $table->id();
+                $table->bigInteger('plan_id')->unsigned();
+                $table->string('title', 35);
+                $table->timestamps();
+            });
+        }
     }
 
     /**

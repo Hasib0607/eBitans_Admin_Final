@@ -13,7 +13,9 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('modulus_payments', function (Blueprint $table) {
-            $table->string('total_product')->after('transaction_id')->nullable();
+            if (! Schema::hasColumn('modulus_payments', 'total_product')) {
+                $table->string('total_product')->after('transaction_id')->nullable();
+            }
         });
     }
 

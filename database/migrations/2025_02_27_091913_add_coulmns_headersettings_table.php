@@ -13,16 +13,32 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('headersettings', function (Blueprint $table) {
-            $table->string('merchant_bkash')->after('uddoktapay')->nullable();
-            $table->string('merchant_nagad')->after('merchant_bkash')->nullable();
-            $table->string('merchant_rocket')->after('merchant_nagad')->nullable();
+            if (! Schema::hasColumn('headersettings', 'merchant_bkash')) {
+                $table->string('merchant_bkash')->after('uddoktapay')->nullable();
+            }
+            if (! Schema::hasColumn('headersettings', 'merchant_nagad')) {
+                $table->string('merchant_nagad')->after('merchant_bkash')->nullable();
+            }
+            if (! Schema::hasColumn('headersettings', 'merchant_rocket')) {
+                $table->string('merchant_rocket')->after('merchant_nagad')->nullable();
+            }
 
-            $table->string('merchant_bkash_text')->after('uddoktapay_text')->default("Bkash");
-            $table->string('merchant_nagad_text')->after('merchant_bkash_text')->default("Nagad");
-            $table->string('merchant_rocket_text')->after('merchant_nagad_text')->default("Rocket");
+            if (! Schema::hasColumn('headersettings', 'merchant_bkash_text')) {
+                $table->string('merchant_bkash_text')->after('uddoktapay_text')->default("Bkash");
+            }
+            if (! Schema::hasColumn('headersettings', 'merchant_nagad_text')) {
+                $table->string('merchant_nagad_text')->after('merchant_bkash_text')->default("Nagad");
+            }
+            if (! Schema::hasColumn('headersettings', 'merchant_rocket_text')) {
+                $table->string('merchant_rocket_text')->after('merchant_nagad_text')->default("Rocket");
+            }
 
-            $table->string('balance_min_withdraw')->after('custom_writing')->nullable()->default(1000);
-            $table->string('balance_max_withdraw')->after('balance_min_withdraw')->nullable();
+            if (! Schema::hasColumn('headersettings', 'balance_min_withdraw')) {
+                $table->string('balance_min_withdraw')->after('custom_writing')->nullable()->default(1000);
+            }
+            if (! Schema::hasColumn('headersettings', 'balance_max_withdraw')) {
+                $table->string('balance_max_withdraw')->after('balance_min_withdraw')->nullable();
+            }
         });
     }
 

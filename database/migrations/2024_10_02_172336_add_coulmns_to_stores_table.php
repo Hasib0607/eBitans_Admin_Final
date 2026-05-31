@@ -13,8 +13,12 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('stores', function (Blueprint $table) {
-            $table->string('currency')->after('template_id')->nullable();
-            $table->string('currency_rate')->after('currency')->nullable();
+            if (! Schema::hasColumn('stores', 'currency')) {
+                $table->string('currency')->after('template_id')->nullable();
+            }
+            if (! Schema::hasColumn('stores', 'currency_rate')) {
+                $table->string('currency_rate')->after('currency')->nullable();
+            }
         });
     }
 

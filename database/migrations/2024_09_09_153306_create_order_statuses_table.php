@@ -12,15 +12,17 @@ return new class extends Migration {
      */
     public function up()
     {
-        Schema::create('order_statuses', function (Blueprint $table) {
-            $table->id();
-            $table->string("name");
-            $table->string("name_bn");
-            $table->string("slug");
-            $table->string("status")->default("1");
-            $table->string("slug_edit")->default("1");
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('order_statuses')) {
+            Schema::create('order_statuses', function (Blueprint $table) {
+                $table->id();
+                $table->string("name");
+                $table->string("name_bn");
+                $table->string("slug");
+                $table->string("status")->default("1");
+                $table->string("slug_edit")->default("1");
+                $table->timestamps();
+            });
+        }
     }
 
     /**

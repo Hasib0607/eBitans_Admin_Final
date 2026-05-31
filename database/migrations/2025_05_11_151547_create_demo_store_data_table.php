@@ -12,20 +12,22 @@ return new class extends Migration {
      */
     public function up()
     {
-        Schema::create('demo_store_data', function (Blueprint $table) {
-            $table->id();
-            $table->string('product_name')->nullable();
-            $table->string('product_image')->nullable();
-            $table->string('category_name')->nullable();
-            $table->string('category_image')->nullable();
-            $table->string('banner_image')->nullable();
-            $table->string('slider_image')->nullable();
-            $table->string('theme_value')->nullable();
-            $table->string('header_color')->nullable();
-            $table->string('type');
-            $table->string('category_id')->nullable();
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('demo_store_data')) {
+            Schema::create('demo_store_data', function (Blueprint $table) {
+                $table->id();
+                $table->string('product_name')->nullable();
+                $table->string('product_image')->nullable();
+                $table->string('category_name')->nullable();
+                $table->string('category_image')->nullable();
+                $table->string('banner_image')->nullable();
+                $table->string('slider_image')->nullable();
+                $table->string('theme_value')->nullable();
+                $table->string('header_color')->nullable();
+                $table->string('type');
+                $table->string('category_id')->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
     /**

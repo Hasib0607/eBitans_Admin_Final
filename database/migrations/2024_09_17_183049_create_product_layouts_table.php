@@ -13,19 +13,21 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('product_layouts', function (Blueprint $table) {
-            $table->id();
-            $table->bigInteger('product_id')->unsigned()->index();
-            $table->bigInteger('store_id')->unsigned()->index();
-            $table->bigInteger('layout_design_id')->unsigned()->nullable();
-            $table->longText('text')->nullable();
-            $table->string('link')->nullable();
-            $table->string('button',50)->nullable();
-            $table->string('type',50)->index();
-            $table->integer('position');
-            $table->foreign('layout_design_id')->references('id')->on('layout_designs')->onDelete('cascade');
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('product_layouts')) {
+            Schema::create('product_layouts', function (Blueprint $table) {
+                $table->id();
+                $table->bigInteger('product_id')->unsigned()->index();
+                $table->bigInteger('store_id')->unsigned()->index();
+                $table->bigInteger('layout_design_id')->unsigned()->nullable();
+                $table->longText('text')->nullable();
+                $table->string('link')->nullable();
+                $table->string('button',50)->nullable();
+                $table->string('type',50)->index();
+                $table->integer('position');
+                $table->foreign('layout_design_id')->references('id')->on('layout_designs')->onDelete('cascade');
+                $table->timestamps();
+            });
+        }
     }
 
     /**

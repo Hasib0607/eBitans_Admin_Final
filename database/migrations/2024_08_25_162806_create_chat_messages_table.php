@@ -12,18 +12,20 @@ return new class extends Migration {
      */
     public function up()
     {
-        Schema::create('chat_messages', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('conversation_id')->constrained('chat_conversations', 'id')->cascadeOnDelete();
-            $table->enum('sender_type', ['visitor', 'agent', 'bot']);
-            $table->unsignedBigInteger('sender_id')->nullable();
-            $table->longText('content')->nullable();
-            $table->longText('file_url')->nullable();
-            $table->enum('message_type', ['text', 'file', 'mix'])->default('text');
-            $table->enum('file_type', ['image', 'pdf', 'other'])->default('other');
-            $table->tinyInteger('seen_status')->default(0)->comment("0=unseen|1=seen");
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('chat_messages')) {
+            Schema::create('chat_messages', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('conversation_id')->constrained('chat_conversations', 'id')->cascadeOnDelete();
+                $table->enum('sender_type', ['visitor', 'agent', 'bot']);
+                $table->unsignedBigInteger('sender_id')->nullable();
+                $table->longText('content')->nullable();
+                $table->longText('file_url')->nullable();
+                $table->enum('message_type', ['text', 'file', 'mix'])->default('text');
+                $table->enum('file_type', ['image', 'pdf', 'other'])->default('other');
+                $table->tinyInteger('seen_status')->default(0)->comment("0=unseen|1=seen");
+                $table->timestamps();
+            });
+        }
     }
 
     /**

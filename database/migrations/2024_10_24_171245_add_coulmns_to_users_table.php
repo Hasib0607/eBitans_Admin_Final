@@ -13,7 +13,9 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->unsignedBigInteger('seller_id')->after('comment')->nullable();
+            if (! Schema::hasColumn('users', 'seller_id')) {
+                $table->unsignedBigInteger('seller_id')->after('comment')->nullable();
+            }
         });
     }
 

@@ -12,13 +12,15 @@ return new class extends Migration {
      */
     public function up()
     {
-        Schema::create('chatbot_question_answers', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId("question_id")->constrained("chatbot_questions")->onDelete('cascade');
-            $table->foreignId("answer_id")->constrained("chatbot_answers")->onDelete('cascade');
-            $table->unsignedBigInteger("group_id");
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('chatbot_question_answers')) {
+            Schema::create('chatbot_question_answers', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId("question_id")->constrained("chatbot_questions")->onDelete('cascade');
+                $table->foreignId("answer_id")->constrained("chatbot_answers")->onDelete('cascade');
+                $table->unsignedBigInteger("group_id");
+                $table->timestamps();
+            });
+        }
     }
 
     /**

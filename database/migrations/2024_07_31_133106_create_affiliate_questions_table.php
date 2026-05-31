@@ -12,17 +12,19 @@ return new class extends Migration {
      */
     public function up()
     {
-        Schema::create('affiliate_questions', function (Blueprint $table) {
-            $table->id();
-            $table->string('question');
-            $table->string('question_type')->comment('checkbox|radio|plain');
-            $table->string('answer_option_one')->nullable();
-            $table->string('answer_option_two')->nullable();
-            $table->string('answer_option_three')->nullable();
-            $table->string('answer_option_four')->nullable();
-            $table->tinyInteger('status')->default(0)->comment('0=Inactive|1=Active');
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('affiliate_questions')) {
+            Schema::create('affiliate_questions', function (Blueprint $table) {
+                $table->id();
+                $table->string('question');
+                $table->string('question_type')->comment('checkbox|radio|plain');
+                $table->string('answer_option_one')->nullable();
+                $table->string('answer_option_two')->nullable();
+                $table->string('answer_option_three')->nullable();
+                $table->string('answer_option_four')->nullable();
+                $table->tinyInteger('status')->default(0)->comment('0=Inactive|1=Active');
+                $table->timestamps();
+            });
+        }
     }
 
     /**

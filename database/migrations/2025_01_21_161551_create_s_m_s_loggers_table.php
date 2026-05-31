@@ -12,15 +12,17 @@ return new class extends Migration {
      */
     public function up()
     {
-        Schema::create('s_m_s_loggers', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('store_id')->nullable();
-            $table->tinyInteger('user_type')->default(0)->comment("0=Admin|1=Super Admin");
-            $table->string('purpose')->nullable();
-            $table->string('phone')->nullable();
-            $table->longText('text')->nullable();
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('s_m_s_loggers')) {
+            Schema::create('s_m_s_loggers', function (Blueprint $table) {
+                $table->id();
+                $table->unsignedBigInteger('store_id')->nullable();
+                $table->tinyInteger('user_type')->default(0)->comment("0=Admin|1=Super Admin");
+                $table->string('purpose')->nullable();
+                $table->string('phone')->nullable();
+                $table->longText('text')->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
     /**

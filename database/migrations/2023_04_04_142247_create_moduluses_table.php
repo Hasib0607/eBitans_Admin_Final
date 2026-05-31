@@ -13,6 +13,10 @@ return new class extends Migration
      */
     public function up()
     {
+        if (Schema::hasTable('moduluses')) {
+            return;
+        }
+
         Schema::create('moduluses', function (Blueprint $table) {
             $table->id();
             $table->string('name')->nullable();

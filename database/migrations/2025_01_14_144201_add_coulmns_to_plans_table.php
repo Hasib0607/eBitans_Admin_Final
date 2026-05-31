@@ -13,8 +13,12 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('plans', function (Blueprint $table) {
-            $table->decimal('monthly_chat_support')->after('payment_processing_charge')->default(0);
-            $table->decimal('upload_file_limit')->after('monthly_chat_support')->default(0);
+            if (! Schema::hasColumn('plans', 'monthly_chat_support')) {
+                $table->decimal('monthly_chat_support')->after('payment_processing_charge')->default(0);
+            }
+            if (! Schema::hasColumn('plans', 'upload_file_limit')) {
+                $table->decimal('upload_file_limit')->after('monthly_chat_support')->default(0);
+            }
         });
     }
 

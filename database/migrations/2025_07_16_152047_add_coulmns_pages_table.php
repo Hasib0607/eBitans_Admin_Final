@@ -13,7 +13,9 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('pages', function (Blueprint $table) {
-            $table->string('feature_image')->after('link')->nullable();
+            if (! Schema::hasColumn('pages', 'feature_image')) {
+                $table->string('feature_image')->after('link')->nullable();
+            }
         });
     }
 

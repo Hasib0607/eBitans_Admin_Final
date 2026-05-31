@@ -13,9 +13,15 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('headersettings', function (Blueprint $table) {
-            $table->tinyInteger('button_status')->after('amarpay_text')->default(0);
-            $table->tinyInteger('rtl_status')->after('button_status')->default(0);
-            $table->tinyInteger('theme_lock')->after('rtl_status')->default(0);
+            if (! Schema::hasColumn('headersettings', 'button_status')) {
+                $table->tinyInteger('button_status')->after('amarpay_text')->default(0);
+            }
+            if (! Schema::hasColumn('headersettings', 'rtl_status')) {
+                $table->tinyInteger('rtl_status')->after('button_status')->default(0);
+            }
+            if (! Schema::hasColumn('headersettings', 'theme_lock')) {
+                $table->tinyInteger('theme_lock')->after('rtl_status')->default(0);
+            }
         });
     }
 

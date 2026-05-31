@@ -13,17 +13,19 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('product_affiliate_commissions', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('affiliate_user_id');
-            $table->unsignedBigInteger('order_id');
-            $table->unsignedBigInteger('product_id');
-            $table->unsignedBigInteger('store_id');
-            $table->decimal('commission_percent',5, 2)->default(0);
-            $table->decimal('amount',10, 2)->default(0);
-            $table->string('currency')->default('BDT');
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('product_affiliate_commissions')) {
+            Schema::create('product_affiliate_commissions', function (Blueprint $table) {
+                $table->id();
+                $table->unsignedBigInteger('affiliate_user_id');
+                $table->unsignedBigInteger('order_id');
+                $table->unsignedBigInteger('product_id');
+                $table->unsignedBigInteger('store_id');
+                $table->decimal('commission_percent',5, 2)->default(0);
+                $table->decimal('amount',10, 2)->default(0);
+                $table->string('currency')->default('BDT');
+                $table->timestamps();
+            });
+        }
     }
 
     /**

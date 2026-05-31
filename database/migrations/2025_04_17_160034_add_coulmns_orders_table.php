@@ -13,7 +13,9 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('orders', function (Blueprint $table) {
-            $table->string('ip')->after('session_id')->nullable();
+            if (! Schema::hasColumn('orders', 'ip')) {
+                $table->string('ip')->after('session_id')->nullable();
+            }
         });
     }
 

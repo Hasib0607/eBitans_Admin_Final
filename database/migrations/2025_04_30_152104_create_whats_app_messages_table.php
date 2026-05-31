@@ -12,11 +12,13 @@ return new class extends Migration {
      */
     public function up()
     {
-        Schema::create('whats_app_messages', function (Blueprint $table) {
-            $table->id();
-            $table->longText('message');
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('whats_app_messages')) {
+            Schema::create('whats_app_messages', function (Blueprint $table) {
+                $table->id();
+                $table->longText('message');
+                $table->timestamps();
+            });
+        }
     }
 
     /**

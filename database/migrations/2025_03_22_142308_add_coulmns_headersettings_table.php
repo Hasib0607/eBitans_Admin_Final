@@ -13,12 +13,22 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('headersettings', function (Blueprint $table) {
-            $table->string('paypal')->after('nagad')->nullable();
-            $table->string('stripe')->after('paypal')->nullable();
+            if (! Schema::hasColumn('headersettings', 'paypal')) {
+                $table->string('paypal')->after('nagad')->nullable();
+            }
+            if (! Schema::hasColumn('headersettings', 'stripe')) {
+                $table->string('stripe')->after('paypal')->nullable();
+            }
 
-            $table->string('nagad_text')->after('bkash_text')->default("Nagad");
-            $table->string('paypal_text')->after('nagad_text')->default("Paypal");
-            $table->string('stripe_text')->after('paypal_text')->default("Stripe");
+            if (! Schema::hasColumn('headersettings', 'nagad_text')) {
+                $table->string('nagad_text')->after('bkash_text')->default("Nagad");
+            }
+            if (! Schema::hasColumn('headersettings', 'paypal_text')) {
+                $table->string('paypal_text')->after('nagad_text')->default("Paypal");
+            }
+            if (! Schema::hasColumn('headersettings', 'stripe_text')) {
+                $table->string('stripe_text')->after('paypal_text')->default("Stripe");
+            }
         });
     }
 

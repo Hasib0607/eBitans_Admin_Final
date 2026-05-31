@@ -13,7 +13,9 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('superstaff_sales_commission_balances', function (Blueprint $table) {
-            $table->string('store_id')->after('staff_id')->nullable();
+            if (! Schema::hasColumn('superstaff_sales_commission_balances', 'store_id')) {
+                $table->string('store_id')->after('staff_id')->nullable();
+            }
         });
     }
 

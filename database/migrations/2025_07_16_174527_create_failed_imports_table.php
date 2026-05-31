@@ -12,13 +12,15 @@ return new class extends Migration {
      */
     public function up()
     {
-        Schema::create('failed_imports', function (Blueprint $table) {
-            $table->id();
-            $table->json('row_data');
-            $table->unsignedBigInteger('product_id')->nullable();
-            $table->text('error')->nullable();
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('failed_imports')) {
+            Schema::create('failed_imports', function (Blueprint $table) {
+                $table->id();
+                $table->json('row_data');
+                $table->unsignedBigInteger('product_id')->nullable();
+                $table->text('error')->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
     /**

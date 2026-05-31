@@ -13,7 +13,9 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('headersettings', function (Blueprint $table) {
-            $table->string('selected_shipping_area')->after('shipping_area_3_cost')->nullable();
+            if (! Schema::hasColumn('headersettings', 'selected_shipping_area')) {
+                $table->string('selected_shipping_area')->after('shipping_area_3_cost')->nullable();
+            }
         });
     }
 

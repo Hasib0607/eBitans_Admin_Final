@@ -13,7 +13,9 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('addons_orders', function (Blueprint $table) {
-            $table->longText('package')->after('addons')->nullable();
+            if (! Schema::hasColumn('addons_orders', 'package')) {
+                $table->longText('package')->after('addons')->nullable();
+            }
         });
     }
 

@@ -13,8 +13,12 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('headersettings', function (Blueprint $table) {
-            $table->string('amarpay')->after('nagad')->nullable();
-            $table->string('amarpay_text')->after('ap_text')->default("Amar Pay");
+            if (! Schema::hasColumn('headersettings', 'amarpay')) {
+                $table->string('amarpay')->after('nagad')->nullable();
+            }
+            if (! Schema::hasColumn('headersettings', 'amarpay_text')) {
+                $table->string('amarpay_text')->after('ap_text')->default("Amar Pay");
+            }
         });
     }
 

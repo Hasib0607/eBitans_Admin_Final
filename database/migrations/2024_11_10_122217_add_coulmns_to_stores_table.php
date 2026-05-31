@@ -13,7 +13,9 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('stores', function (Blueprint $table) {
-            $table->string('sms_status')->after('call_status')->default(0);
+            if (! Schema::hasColumn('stores', 'sms_status')) {
+                $table->string('sms_status')->after('call_status')->default(0);
+            }
         });
     }
 

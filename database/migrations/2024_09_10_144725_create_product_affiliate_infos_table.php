@@ -13,18 +13,20 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('product_affiliate_infos', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('user_id');
-            $table->unsignedBigInteger('store_id');
-            $table->string('referral_code')->nullable();
-            $table->decimal('commission_percent', 5, 2)->default(0);
-            $table->decimal('total_earning', 10, 2)->default(0);
-            $table->decimal('final_amount', 10, 2)->default(0);
-            $table->string('currency')->default('BDT');
-            $table->boolean('status')->default(0)->comment('0=Inactive|1=Active');
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('product_affiliate_infos')) {
+            Schema::create('product_affiliate_infos', function (Blueprint $table) {
+                $table->id();
+                $table->unsignedBigInteger('user_id');
+                $table->unsignedBigInteger('store_id');
+                $table->string('referral_code')->nullable();
+                $table->decimal('commission_percent', 5, 2)->default(0);
+                $table->decimal('total_earning', 10, 2)->default(0);
+                $table->decimal('final_amount', 10, 2)->default(0);
+                $table->string('currency')->default('BDT');
+                $table->boolean('status')->default(0)->comment('0=Inactive|1=Active');
+                $table->timestamps();
+            });
+        }
     }
 
     /**

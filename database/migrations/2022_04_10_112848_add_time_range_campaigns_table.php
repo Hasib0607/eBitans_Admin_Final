@@ -14,11 +14,21 @@ return new class extends Migration
     public function up()
     {
         Schema::table('campaigns', function (Blueprint $table) {
-            $table->string('length_type')->nullable();
-            $table->string('specific_dates')->nullable();
-            $table->string('repeat_dates')->nullable();
-            $table->string('start_time')->nullable();
-            $table->string('end_time')->nullable();
+            if (! Schema::hasColumn('campaigns', 'length_type')) {
+                $table->string('length_type')->nullable();
+            }
+            if (! Schema::hasColumn('campaigns', 'specific_dates')) {
+                $table->string('specific_dates')->nullable();
+            }
+            if (! Schema::hasColumn('campaigns', 'repeat_dates')) {
+                $table->string('repeat_dates')->nullable();
+            }
+            if (! Schema::hasColumn('campaigns', 'start_time')) {
+                $table->string('start_time')->nullable();
+            }
+            if (! Schema::hasColumn('campaigns', 'end_time')) {
+                $table->string('end_time')->nullable();
+            }
         });
     }
 

@@ -13,7 +13,9 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('affiliate_infos', function (Blueprint $table) {
-            $table->decimal('affiliate_charge_usd')->after('affiliate_charge')->default(0.00);
+            if (! Schema::hasColumn('affiliate_infos', 'affiliate_charge_usd')) {
+                $table->decimal('affiliate_charge_usd')->after('affiliate_charge')->default(0.00);
+            }
         });
     }
 

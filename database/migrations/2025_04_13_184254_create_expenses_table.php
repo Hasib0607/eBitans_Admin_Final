@@ -12,16 +12,18 @@ return new class extends Migration {
      */
     public function up()
     {
-        Schema::create('expenses', function (Blueprint $table) {
-            $table->id();
-            $table->string('description');
-            $table->decimal('amount', 10, 2);
-            $table->string('date');
-            $table->string('category');
-            $table->longText('notes')->nullable();
-            $table->unsignedInteger('user_id');
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('expenses')) {
+            Schema::create('expenses', function (Blueprint $table) {
+                $table->id();
+                $table->string('description');
+                $table->decimal('amount', 10, 2);
+                $table->string('date');
+                $table->string('category');
+                $table->longText('notes')->nullable();
+                $table->unsignedInteger('user_id');
+                $table->timestamps();
+            });
+        }
     }
 
     /**

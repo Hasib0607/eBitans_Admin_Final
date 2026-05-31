@@ -13,14 +13,17 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('designlists', function (Blueprint $table) {
-            // Check if 'title_bg' exists before renaming it to avoid errors
-            if (Schema::hasColumn('designlists', 'title_bg')) {
+            // Check both columns before renaming to avoid duplicate-column errors.
+            if (Schema::hasColumn('designlists', 'title_bg') && ! Schema::hasColumn('designlists', 'button_color')) {
                 DB::statement('ALTER TABLE designlists CHANGE title_bg button_color VARCHAR(50)');
             }
 
             // Add 'button' column only if it doesn't already exist
             if (!Schema::hasColumn('designlists', 'button')) {
                 $table->string('button', 100)->nullable()->after('title_color');
+            }
+
+            if (!Schema::hasColumn('designlists', 'image_description')) {
                 $table->string('image_description', 50)->nullable()->after('button');
             }
         });
@@ -62,8 +65,8 @@ return new class extends Migration {
                 $table->dropColumn('image_description');
             }
 
-            // Check if 'button_color' exists before renaming it back to 'title_bg'
-            if (Schema::hasColumn('designlists', 'button_color')) {
+            // Check both columns before renaming it back to 'title_bg'
+            if (Schema::hasColumn('designlists', 'button_color') && ! Schema::hasColumn('designlists', 'title_bg')) {
                 DB::statement('ALTER TABLE designlists CHANGE button_color title_bg VARCHAR(255)');
             }
         });

@@ -13,7 +13,9 @@
         public function up()
         {
             Schema::table('addons_orders', function (Blueprint $table) {
-                $table->bigInteger('currency_id')->default(1)->after('id')->index();
+                if (! Schema::hasColumn('addons_orders', 'currency_id')) {
+                    $table->bigInteger('currency_id')->default(1)->after('id')->index();
+                }
                 //
             });
         }

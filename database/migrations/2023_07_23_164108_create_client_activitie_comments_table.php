@@ -13,18 +13,20 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('client_activitie_comments', function (Blueprint $table) {
-            $table->id();
-            $table->bigInteger('user_id')->nullable();
-            $table->bigInteger('store_id')->nullable();
-            $table->date('follow_up_date')->nullable();
-            $table->string('follow_up_time')->nullable();
-            $table->string('short_comment')->nullable();
-            $table->text('comment')->nullable();
-            $table->string('status')->nullable();
-            $table->timestamps();
-            $table->softDeletes();
-        });
+        if (! Schema::hasTable('client_activitie_comments')) {
+            Schema::create('client_activitie_comments', function (Blueprint $table) {
+                $table->id();
+                $table->bigInteger('user_id')->nullable();
+                $table->bigInteger('store_id')->nullable();
+                $table->date('follow_up_date')->nullable();
+                $table->string('follow_up_time')->nullable();
+                $table->string('short_comment')->nullable();
+                $table->text('comment')->nullable();
+                $table->string('status')->nullable();
+                $table->timestamps();
+                $table->softDeletes();
+            });
+        }
     }
 
     /**

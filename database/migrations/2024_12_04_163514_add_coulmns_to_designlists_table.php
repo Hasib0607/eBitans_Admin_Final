@@ -13,10 +13,18 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('designlists', function (Blueprint $table) {
-            $table->string('button_bg_color')->after('button_color')->nullable();
-            $table->string('button1')->after('button_color')->nullable();
-            $table->string('button1_color')->after('button1')->nullable();
-            $table->string('button1_bg_color')->after('button1_color')->nullable();
+            if (! Schema::hasColumn('designlists', 'button_bg_color')) {
+                $table->string('button_bg_color')->after('button_color')->nullable();
+            }
+            if (! Schema::hasColumn('designlists', 'button1')) {
+                $table->string('button1')->after('button_color')->nullable();
+            }
+            if (! Schema::hasColumn('designlists', 'button1_color')) {
+                $table->string('button1_color')->after('button1')->nullable();
+            }
+            if (! Schema::hasColumn('designlists', 'button1_bg_color')) {
+                $table->string('button1_bg_color')->after('button1_color')->nullable();
+            }
         });
     }
 

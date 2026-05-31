@@ -13,17 +13,19 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('product_affiliate_withdraw_requests', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('affiliate_info_id');
-            $table->unsignedBigInteger('admin_id')->nullable();
-            $table->text('note')->nullable();
-            $table->string('phone', 15)->nullable();
-            $table->string('amount')->default(0);
-            $table->string('currency')->default('BDT');
-            $table->tinyInteger('status')->default(0)->comment('0=Pending|1=Approved|2=Rejected');
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('product_affiliate_withdraw_requests')) {
+            Schema::create('product_affiliate_withdraw_requests', function (Blueprint $table) {
+                $table->id();
+                $table->unsignedBigInteger('affiliate_info_id');
+                $table->unsignedBigInteger('admin_id')->nullable();
+                $table->text('note')->nullable();
+                $table->string('phone', 15)->nullable();
+                $table->string('amount')->default(0);
+                $table->string('currency')->default('BDT');
+                $table->tinyInteger('status')->default(0)->comment('0=Pending|1=Approved|2=Rejected');
+                $table->timestamps();
+            });
+        }
     }
 
     /**

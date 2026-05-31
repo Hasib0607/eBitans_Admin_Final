@@ -13,6 +13,10 @@ return new class extends Migration
      */
     public function up()
     {
+        if (Schema::hasTable('admin_user_analytics')) {
+            return;
+        }
+
         Schema::create('admin_user_analytics', function (Blueprint $table) {
             $table->id();
             $table->bigInteger('store_id')->nullable();

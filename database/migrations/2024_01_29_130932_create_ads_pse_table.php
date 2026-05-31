@@ -12,17 +12,19 @@ return new class extends Migration {
      */
     public function up()
     {
-        Schema::create('ads_pse', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->string('link');
-            $table->index('category_id');
-            $table->foreign('category_id')->references('id')->on('categories')->onDelete('cascade');
-            $table->string('banner');
-            $table->string('status');
-            $table->string('position');
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('ads_pse')) {
+            Schema::create('ads_pse', function (Blueprint $table) {
+                $table->id();
+                $table->string('name');
+                $table->string('link');
+                $table->index('category_id');
+                $table->foreign('category_id')->references('id')->on('categories')->onDelete('cascade');
+                $table->string('banner');
+                $table->string('status');
+                $table->string('position');
+                $table->timestamps();
+            });
+        }
     }
 
     /**

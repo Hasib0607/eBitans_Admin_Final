@@ -14,8 +14,12 @@ return new class extends Migration
     public function up()
     {
         Schema::table('categories', function (Blueprint $table) {
-            $table->string('icon')->nullable();
-            $table->string('banner')->nullable();
+            if (! Schema::hasColumn('categories', 'icon')) {
+                $table->string('icon')->nullable();
+            }
+            if (! Schema::hasColumn('categories', 'banner')) {
+                $table->string('banner')->nullable();
+            }
         });
     }
 

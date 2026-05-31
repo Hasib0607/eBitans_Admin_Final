@@ -13,8 +13,12 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('products', function (Blueprint $table) {
-            $table->string('stock_status')->after('unit')->nullable();
-            $table->longText('pre_order_note')->after('stock_status')->nullable();
+            if (! Schema::hasColumn('products', 'stock_status')) {
+                $table->string('stock_status')->after('unit')->nullable();
+            }
+            if (! Schema::hasColumn('products', 'pre_order_note')) {
+                $table->longText('pre_order_note')->after('stock_status')->nullable();
+            }
         });
     }
 

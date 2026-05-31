@@ -12,14 +12,16 @@ return new class extends Migration {
      */
     public function up()
     {
-        Schema::create('accepted_pse_product_requests', function (Blueprint $table) {
-            $table->id();
-            $table->string('product_id')->nullable();
-            $table->string('category_id')->nullable();
-            $table->string('position')->nullable();
-            $table->boolean('status')->nullable();
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('accepted_pse_product_requests')) {
+            Schema::create('accepted_pse_product_requests', function (Blueprint $table) {
+                $table->id();
+                $table->string('product_id')->nullable();
+                $table->string('category_id')->nullable();
+                $table->string('position')->nullable();
+                $table->boolean('status')->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
     /**

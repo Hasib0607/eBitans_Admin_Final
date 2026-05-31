@@ -13,8 +13,12 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('admin_blogs', function (Blueprint $table) {
-            $table->longText('canonical_url')->after('permalink')->nullable();
-            $table->longText('custom_script')->after('canonical_url')->nullable();
+            if (! Schema::hasColumn('admin_blogs', 'canonical_url')) {
+                $table->longText('canonical_url')->after('permalink')->nullable();
+            }
+            if (! Schema::hasColumn('admin_blogs', 'custom_script')) {
+                $table->longText('custom_script')->after('canonical_url')->nullable();
+            }
         });
     }
 

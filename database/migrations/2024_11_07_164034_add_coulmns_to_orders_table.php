@@ -13,7 +13,9 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('orders', function (Blueprint $table) {
-            $table->string('edited_address')->after('address')->nullable();
+            if (! Schema::hasColumn('orders', 'edited_address')) {
+                $table->string('edited_address')->after('address')->nullable();
+            }
         });
     }
 

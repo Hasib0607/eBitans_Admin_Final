@@ -13,7 +13,9 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('stores', function (Blueprint $table) {
-            $table->string('alert_popup')->after('bkash_token')->nullable();
+            if (! Schema::hasColumn('stores', 'alert_popup')) {
+                $table->string('alert_popup')->after('bkash_token')->nullable();
+            }
         });
     }
 

@@ -12,14 +12,16 @@ return new class extends Migration {
      */
     public function up()
     {
-        Schema::create('announcements', function (Blueprint $table) {
-            $table->id();
-            $table->string('announcement');
-            $table->bigInteger('user_id');
-            $table->bigInteger('store_id')->nullable();
-            $table->tinyInteger('status')->default(1)->comment('0=Inactive|1=Active');
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('announcements')) {
+            Schema::create('announcements', function (Blueprint $table) {
+                $table->id();
+                $table->string('announcement');
+                $table->bigInteger('user_id');
+                $table->bigInteger('store_id')->nullable();
+                $table->tinyInteger('status')->default(1)->comment('0=Inactive|1=Active');
+                $table->timestamps();
+            });
+        }
     }
 
     /**

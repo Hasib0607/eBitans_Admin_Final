@@ -12,9 +12,11 @@
          */
         public function up()
         {
-            Schema::table('stores', function (Blueprint $table) {
-                $table->decimal('currency_rate', 10, 4)->default(117.56)->after('currency');
-            });
+            if (! Schema::hasColumn('stores', 'currency_rate')) {
+                Schema::table('stores', function (Blueprint $table) {
+                    $table->decimal('currency_rate', 10, 4)->default(117.56)->after('currency');
+                });
+            }
         }
 
         /**

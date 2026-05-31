@@ -12,11 +12,13 @@ return new class extends Migration {
      */
     public function up()
     {
-        Schema::create('static_visitors', function (Blueprint $table) {
-            $table->id();
-            $table->string('visitors');
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('static_visitors')) {
+            Schema::create('static_visitors', function (Blueprint $table) {
+                $table->id();
+                $table->string('visitors');
+                $table->timestamps();
+            });
+        }
     }
 
     /**

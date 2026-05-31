@@ -13,8 +13,12 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('menus', function (Blueprint $table) {
-            $table->string('custom_link')->after('sort')->nullable();
-            $table->string('status')->after('custom_link')->default(0);
+            if (! Schema::hasColumn('menus', 'custom_link')) {
+                $table->string('custom_link')->after('sort')->nullable();
+            }
+            if (! Schema::hasColumn('menus', 'status')) {
+                $table->string('status')->after('custom_link')->default(0);
+            }
         });
     }
 

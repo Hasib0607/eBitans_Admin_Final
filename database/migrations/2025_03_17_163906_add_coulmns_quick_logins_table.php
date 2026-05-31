@@ -13,7 +13,9 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('quick_logins', function (Blueprint $table) {
-            $table->string('general_access_token')->after('facebook_pixel')->nullable();
+            if (! Schema::hasColumn('quick_logins', 'general_access_token')) {
+                $table->string('general_access_token')->after('facebook_pixel')->nullable();
+            }
         });
     }
 

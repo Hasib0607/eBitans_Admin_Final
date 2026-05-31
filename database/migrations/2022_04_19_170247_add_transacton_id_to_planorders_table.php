@@ -14,7 +14,9 @@ return new class extends Migration
     public function up()
     {
         Schema::table('planorders', function (Blueprint $table) {
-            $table->string('transaction_id')->nullable();
+            if (! Schema::hasColumn('planorders', 'transaction_id')) {
+                $table->string('transaction_id')->nullable();
+            }
         });
     }
 

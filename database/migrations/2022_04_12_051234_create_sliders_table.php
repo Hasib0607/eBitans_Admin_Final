@@ -13,17 +13,19 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('sliders', function (Blueprint $table) {
-            $table->id();
-            $table->text('image')->nullable();
-            $table->text('subimage')->nullable();
-            $table->string('title')->nullable();
-            $table->string('subtitle')->nullable();
-            $table->string('link')->nullable();
-            $table->string('position')->nullable();
-            $table->string('status')->nullable();
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('sliders')) {
+            Schema::create('sliders', function (Blueprint $table) {
+                $table->id();
+                $table->text('image')->nullable();
+                $table->text('subimage')->nullable();
+                $table->string('title')->nullable();
+                $table->string('subtitle')->nullable();
+                $table->string('link')->nullable();
+                $table->string('position')->nullable();
+                $table->string('status')->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
     /**

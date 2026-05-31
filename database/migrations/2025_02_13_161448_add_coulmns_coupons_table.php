@@ -13,8 +13,12 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('coupons', function (Blueprint $table) {
-            $table->integer('shipping_area')->after('max_use')->nullable();
-            $table->tinyInteger('auto_apply')->after('shipping_area')->default(0)->comment("0=Inactive|1=Active");
+            if (! Schema::hasColumn('coupons', 'shipping_area')) {
+                $table->integer('shipping_area')->after('max_use')->nullable();
+            }
+            if (! Schema::hasColumn('coupons', 'auto_apply')) {
+                $table->tinyInteger('auto_apply')->after('shipping_area')->default(0)->comment("0=Inactive|1=Active");
+            }
         });
     }
 

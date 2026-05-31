@@ -14,7 +14,9 @@ return new class extends Migration
     public function up()
     {
         Schema::table('templates', function (Blueprint $table) {
-            $table->string('announcement', 50)->after('contact')->nullable();
+            if (! Schema::hasColumn('templates', 'announcement')) {
+                $table->string('announcement', 50)->after('contact')->nullable();
+            }
         });
     }
 

@@ -12,17 +12,19 @@ return new class extends Migration {
      */
     public function up()
     {
-        Schema::create('store_designs', function (Blueprint $table) {
-            $table->id();
-            $table->string('title', 100)->nullable();
-            $table->string('title_color', 50)->nullable();
-            $table->string('button', 50)->nullable();
-            $table->string('button_color', 50)->nullable();
-            $table->string('image_description', 255)->nullable();
-            $table->string('type', 50);
-            $table->bigInteger('store_id')->unsigned();
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('store_designs')) {
+            Schema::create('store_designs', function (Blueprint $table) {
+                $table->id();
+                $table->string('title', 100)->nullable();
+                $table->string('title_color', 50)->nullable();
+                $table->string('button', 50)->nullable();
+                $table->string('button_color', 50)->nullable();
+                $table->string('image_description', 255)->nullable();
+                $table->string('type', 50);
+                $table->bigInteger('store_id')->unsigned();
+                $table->timestamps();
+            });
+        }
     }
 
     /**

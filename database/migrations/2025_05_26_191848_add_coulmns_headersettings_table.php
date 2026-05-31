@@ -13,7 +13,9 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('headersettings', function (Blueprint $table) {
-            $table->string('payment_method')->after('payment_type')->nullable();
+            if (! Schema::hasColumn('headersettings', 'payment_method')) {
+                $table->string('payment_method')->after('payment_type')->nullable();
+            }
         });
     }
 

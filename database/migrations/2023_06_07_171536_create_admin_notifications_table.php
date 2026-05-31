@@ -13,15 +13,17 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('admin_notifications', function (Blueprint $table) {
-            $table->id();
-            $table->integer('store_id')->nullable();
-            $table->string('message')->nullable();
-            $table->string('body')->nullable();
-            $table->text('link')->nullable();
-            $table->timestamps();
-            $table->softDeletes();
-        });
+        if (! Schema::hasTable('admin_notifications')) {
+            Schema::create('admin_notifications', function (Blueprint $table) {
+                $table->id();
+                $table->integer('store_id')->nullable();
+                $table->string('message')->nullable();
+                $table->string('body')->nullable();
+                $table->text('link')->nullable();
+                $table->timestamps();
+                $table->softDeletes();
+            });
+        }
     }
 
     /**

@@ -12,11 +12,13 @@ return new class extends Migration {
      */
     public function up()
     {
-        Schema::create('chatbot_unanswered_questions', function (Blueprint $table) {
-            $table->id();
-            $table->longText("question");
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('chatbot_unanswered_questions')) {
+            Schema::create('chatbot_unanswered_questions', function (Blueprint $table) {
+                $table->id();
+                $table->longText("question");
+                $table->timestamps();
+            });
+        }
     }
 
     /**

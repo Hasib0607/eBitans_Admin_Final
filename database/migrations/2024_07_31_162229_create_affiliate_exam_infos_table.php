@@ -12,14 +12,16 @@ return new class extends Migration {
      */
     public function up()
     {
-        Schema::create('affiliate_exam_infos', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->references('id')->on('users')->onDelete('cascade');
-            $table->dateTime('exam_started_at')->nullable();
-            $table->dateTime('answer_submitted_at')->nullable();
-            $table->string('user_status')->nullable()->comment("Hold|Approved|Rejected");
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('affiliate_exam_infos')) {
+            Schema::create('affiliate_exam_infos', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('user_id')->references('id')->on('users')->onDelete('cascade');
+                $table->dateTime('exam_started_at')->nullable();
+                $table->dateTime('answer_submitted_at')->nullable();
+                $table->string('user_status')->nullable()->comment("Hold|Approved|Rejected");
+                $table->timestamps();
+            });
+        }
     }
 
     /**

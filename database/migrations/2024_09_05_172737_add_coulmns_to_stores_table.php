@@ -13,9 +13,15 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('stores', function (Blueprint $table) {
-            $table->unsignedInteger('dropship_commission')->after('expiry_date')->default(3);
-            $table->tinyInteger('order_pull')->after('dropship_commission')->default(0)->comment("0=order place|1=order delivered");
-            $table->decimal('overflow_commission')->after('order_pull')->default(10000);
+            if (! Schema::hasColumn('stores', 'dropship_commission')) {
+                $table->unsignedInteger('dropship_commission')->after('expiry_date')->default(3);
+            }
+            if (! Schema::hasColumn('stores', 'order_pull')) {
+                $table->tinyInteger('order_pull')->after('dropship_commission')->default(0)->comment("0=order place|1=order delivered");
+            }
+            if (! Schema::hasColumn('stores', 'overflow_commission')) {
+                $table->decimal('overflow_commission')->after('order_pull')->default(10000);
+            }
         });
     }
 

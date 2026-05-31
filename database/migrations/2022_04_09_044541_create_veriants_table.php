@@ -13,15 +13,17 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('veriants', function (Blueprint $table) {
-            $table->id();
-            $table->string('pid')->nullable();
-            $table->string('color')->nullable();
-            $table->string('size')->nullable();
-            $table->string('quantity')->nullable();
-            $table->string('additional_price')->nullable();
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('veriants')) {
+            Schema::create('veriants', function (Blueprint $table) {
+                $table->id();
+                $table->string('pid')->nullable();
+                $table->string('color')->nullable();
+                $table->string('size')->nullable();
+                $table->string('quantity')->nullable();
+                $table->string('additional_price')->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
     /**

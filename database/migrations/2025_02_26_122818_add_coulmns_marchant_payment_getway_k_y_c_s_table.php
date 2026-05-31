@@ -13,7 +13,9 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('marchant_payment_getway_k_y_c_s', function (Blueprint $table) {
-            $table->enum('payment_gatway', ["bkash", "nagad", "rocket", "amarpay", "paypal", "stripe", "ssl"])->after('online_bank')->nullable();
+            if (! Schema::hasColumn('marchant_payment_getway_k_y_c_s', 'payment_gatway')) {
+                $table->enum('payment_gatway', ["bkash", "nagad", "rocket", "amarpay", "paypal", "stripe", "ssl"])->after('online_bank')->nullable();
+            }
         });
     }
 

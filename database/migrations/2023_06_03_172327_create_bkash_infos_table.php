@@ -13,16 +13,18 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('bkash_infos', function (Blueprint $table) {
-            $table->id();
-            $table->integer('store_id')->nullable();
-            $table->string('BKASH_CHECKOUT_URL_USER_NAME')->nullable();
-            $table->string('BKASH_CHECKOUT_URL_PASSWORD')->nullable();
-            $table->string('BKASH_CHECKOUT_URL_APP_KEY')->nullable();
-            $table->string('BKASH_CHECKOUT_URL_APP_SECRET')->nullable();
-            $table->timestamps();
-            $table->softDeletes();
-        });
+        if (! Schema::hasTable('bkash_infos')) {
+            Schema::create('bkash_infos', function (Blueprint $table) {
+                $table->id();
+                $table->integer('store_id')->nullable();
+                $table->string('BKASH_CHECKOUT_URL_USER_NAME')->nullable();
+                $table->string('BKASH_CHECKOUT_URL_PASSWORD')->nullable();
+                $table->string('BKASH_CHECKOUT_URL_APP_KEY')->nullable();
+                $table->string('BKASH_CHECKOUT_URL_APP_SECRET')->nullable();
+                $table->timestamps();
+                $table->softDeletes();
+            });
+        }
     }
 
     /**

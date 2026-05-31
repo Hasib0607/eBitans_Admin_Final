@@ -13,14 +13,16 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('orderitems', function (Blueprint $table) {
-            $table->id();
-            $table->string('product_id')->nullable();
-            $table->string('order_id')->nullable();
-            $table->string('price')->nullable();
-            $table->string('quantity')->nullable();
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('orderitems')) {
+            Schema::create('orderitems', function (Blueprint $table) {
+                $table->id();
+                $table->string('product_id')->nullable();
+                $table->string('order_id')->nullable();
+                $table->string('price')->nullable();
+                $table->string('quantity')->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
     /**

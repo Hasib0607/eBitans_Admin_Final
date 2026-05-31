@@ -13,7 +13,9 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('business_categories', function (Blueprint $table) {
-            $table->string('parent_id')->after('slug')->nullable();
+            if (! Schema::hasColumn('business_categories', 'parent_id')) {
+                $table->string('parent_id')->after('slug')->nullable();
+            }
         });
     }
 

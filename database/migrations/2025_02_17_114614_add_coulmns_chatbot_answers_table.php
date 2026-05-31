@@ -13,8 +13,12 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('chatbot_answers', function (Blueprint $table) {
-            $table->tinyInteger('type_both')->after('type')->default(0)->comment("0=Inactive|1=Active");
-            $table->tinyInteger('lang_both')->after('lang')->default(0)->comment("0=Inactive|1=Active");
+            if (! Schema::hasColumn('chatbot_answers', 'type_both')) {
+                $table->tinyInteger('type_both')->after('type')->default(0)->comment("0=Inactive|1=Active");
+            }
+            if (! Schema::hasColumn('chatbot_answers', 'lang_both')) {
+                $table->tinyInteger('lang_both')->after('lang')->default(0)->comment("0=Inactive|1=Active");
+            }
         });
     }
 

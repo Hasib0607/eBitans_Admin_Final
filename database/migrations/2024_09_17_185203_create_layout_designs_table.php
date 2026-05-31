@@ -13,14 +13,16 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('layout_designs', function (Blueprint $table) {
-            $table->id();
-            $table->string('color', 20)->nullable();
-            $table->string('bg_color', 20)->nullable();
-            $table->string('hover_color', 20)->nullable();
-            $table->string('size', 50)->nullable();
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('layout_designs')) {
+            Schema::create('layout_designs', function (Blueprint $table) {
+                $table->id();
+                $table->string('color', 20)->nullable();
+                $table->string('bg_color', 20)->nullable();
+                $table->string('hover_color', 20)->nullable();
+                $table->string('size', 50)->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
     /**

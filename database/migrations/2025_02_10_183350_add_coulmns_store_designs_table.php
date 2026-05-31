@@ -13,8 +13,12 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('store_designs', function (Blueprint $table) {
-            $table->tinyInteger('is_buy_now_cart')->after('image_description')->default(0);
-            $table->tinyInteger('is_buy_now_cart1')->after('is_buy_now_cart')->default(1);
+            if (! Schema::hasColumn('store_designs', 'is_buy_now_cart')) {
+                $table->tinyInteger('is_buy_now_cart')->after('image_description')->default(0);
+            }
+            if (! Schema::hasColumn('store_designs', 'is_buy_now_cart1')) {
+                $table->tinyInteger('is_buy_now_cart1')->after('is_buy_now_cart')->default(1);
+            }
         });
     }
 

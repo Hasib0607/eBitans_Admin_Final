@@ -13,7 +13,9 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('product_affiliate_commissions', function (Blueprint $table) {
-            $table->double('product_price')->after('product_id')->default(0.00);
+            if (! Schema::hasColumn('product_affiliate_commissions', 'product_price')) {
+                $table->double('product_price')->after('product_id')->default(0.00);
+            }
         });
     }
 

@@ -13,8 +13,12 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->string('register_from')->after('total_commission')->nullable();
-            $table->tinyInteger('paid_registration')->after('register_from')->default(0);
+            if (! Schema::hasColumn('users', 'register_from')) {
+                $table->string('register_from')->after('total_commission')->nullable();
+            }
+            if (! Schema::hasColumn('users', 'paid_registration')) {
+                $table->tinyInteger('paid_registration')->after('register_from')->default(0);
+            }
         });
     }
 

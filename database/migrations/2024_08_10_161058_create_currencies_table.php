@@ -13,16 +13,18 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('currencies', function (Blueprint $table) {
-            $table->id();
-            $table->string('country', 100);
-            $table->string('code',10);
-            $table->string('symbol',1);
-            $table->decimal('rate', 8, 4);
-            $table->boolean('customize_rate_status')->default(true);
-            $table->boolean('status')->default(true);
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('currencies')) {
+            Schema::create('currencies', function (Blueprint $table) {
+                $table->id();
+                $table->string('country', 100);
+                $table->string('code',10);
+                $table->string('symbol',1);
+                $table->decimal('rate', 8, 4);
+                $table->boolean('customize_rate_status')->default(true);
+                $table->boolean('status')->default(true);
+                $table->timestamps();
+            });
+        }
     }
 
     /**

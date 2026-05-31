@@ -13,16 +13,18 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('pages', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->string('slug');
-            $table->text('details')->nullable();
-            $table->string('position')->nullable();
-            $table->string('link')->nullable();
-            $table->string('status')->nullable();
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('pages')) {
+            Schema::create('pages', function (Blueprint $table) {
+                $table->id();
+                $table->string('name');
+                $table->string('slug');
+                $table->text('details')->nullable();
+                $table->string('position')->nullable();
+                $table->string('link')->nullable();
+                $table->string('status')->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
     /**

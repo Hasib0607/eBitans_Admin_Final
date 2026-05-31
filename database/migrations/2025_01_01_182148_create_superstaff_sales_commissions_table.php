@@ -12,17 +12,19 @@ return new class extends Migration {
      */
     public function up()
     {
-        Schema::create('superstaff_sales_commissions', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId("user_id")->constrained("users")->onDelete('cascade');
-            $table->unsignedBigInteger('staff_id');
-            $table->decimal('new_commission')->default(0.00);
-            $table->decimal('renew_commission')->default(0.00);
-            $table->decimal('setup_commission')->default(0.00);
-            $table->timestamps();
-
-            $table->foreign('staff_id')->references('id')->on('superstaffs')->onDelete('cascade');
-        });
+        if (! Schema::hasTable('superstaff_sales_commissions')) {
+            Schema::create('superstaff_sales_commissions', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId("user_id")->constrained("users")->onDelete('cascade');
+                $table->unsignedBigInteger('staff_id');
+                $table->decimal('new_commission')->default(0.00);
+                $table->decimal('renew_commission')->default(0.00);
+                $table->decimal('setup_commission')->default(0.00);
+                $table->timestamps();
+    
+                $table->foreign('staff_id')->references('id')->on('superstaffs')->onDelete('cascade');
+            });
+        }
     }
 
     /**

@@ -13,7 +13,9 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('chat_messages', function (Blueprint $table) {
-            $table->tinyInteger('isDelete')->after('seen_status')->default(0)->comment("0=User Seen|1=User not seen");
+            if (! Schema::hasColumn('chat_messages', 'isDelete')) {
+                $table->tinyInteger('isDelete')->after('seen_status')->default(0)->comment("0=User Seen|1=User not seen");
+            }
         });
     }
 

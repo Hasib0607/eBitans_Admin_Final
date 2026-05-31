@@ -13,7 +13,9 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('orders', function (Blueprint $table) {
-            $table->unsignedBigInteger('order_no', false)->after('reference_no')->nullable();
+            if (! Schema::hasColumn('orders', 'order_no')) {
+                $table->unsignedBigInteger('order_no', false)->after('reference_no')->nullable();
+            }
         });
     }
 

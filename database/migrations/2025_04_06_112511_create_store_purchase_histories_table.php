@@ -12,20 +12,22 @@ return new class extends Migration {
      */
     public function up()
     {
-        Schema::create('store_purchase_histories', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedInteger('store_id')->nullable();
-            $table->unsignedInteger('user_id')->nullable();
-            $table->unsignedInteger('plan_id')->nullable();
-            $table->unsignedInteger('plan_month')->nullable();
-            $table->decimal('plan_price', 10, 2)->default(0.00);
-            $table->decimal('discount', 10, 2)->default(0.00);
-            $table->decimal('total', 10, 2)->default(0.00);
-            $table->string('active_date')->nullable();
-            $table->string('expire_date')->nullable();
-            $table->unsignedBigInteger('seller_id')->nullable();
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('store_purchase_histories')) {
+            Schema::create('store_purchase_histories', function (Blueprint $table) {
+                $table->id();
+                $table->unsignedInteger('store_id')->nullable();
+                $table->unsignedInteger('user_id')->nullable();
+                $table->unsignedInteger('plan_id')->nullable();
+                $table->unsignedInteger('plan_month')->nullable();
+                $table->decimal('plan_price', 10, 2)->default(0.00);
+                $table->decimal('discount', 10, 2)->default(0.00);
+                $table->decimal('total', 10, 2)->default(0.00);
+                $table->string('active_date')->nullable();
+                $table->string('expire_date')->nullable();
+                $table->unsignedBigInteger('seller_id')->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
     /**

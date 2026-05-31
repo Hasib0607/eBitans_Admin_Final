@@ -13,13 +13,15 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('holdorderitems', function (Blueprint $table) {
-            $table->id();
-            $table->string('oid')->nullable();
-            $table->string('pid')->nullable();
-            $table->string('quantity')->nullable();
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('holdorderitems')) {
+            Schema::create('holdorderitems', function (Blueprint $table) {
+                $table->id();
+                $table->string('oid')->nullable();
+                $table->string('pid')->nullable();
+                $table->string('quantity')->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
     /**

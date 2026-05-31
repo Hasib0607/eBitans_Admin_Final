@@ -13,7 +13,9 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('websitesetups', function (Blueprint $table) {
-            $table->tinyInteger('data_submit')->after('status')->default(0)->comment("0=Data not submit, 1=Data submit");
+            if (! Schema::hasColumn('websitesetups', 'data_submit')) {
+                $table->tinyInteger('data_submit')->after('status')->default(0)->comment("0=Data not submit, 1=Data submit");
+            }
         });
     }
 

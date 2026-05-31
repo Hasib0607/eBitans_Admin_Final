@@ -13,7 +13,9 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('products', function (Blueprint $table) {
-            $table->longText('gallery_image')->after('images')->nullable();
+            if (! Schema::hasColumn('products', 'gallery_image')) {
+                $table->longText('gallery_image')->after('images')->nullable();
+            }
         });
     }
 

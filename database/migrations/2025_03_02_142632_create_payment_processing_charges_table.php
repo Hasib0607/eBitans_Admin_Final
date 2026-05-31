@@ -12,14 +12,16 @@ return new class extends Migration {
      */
     public function up()
     {
-        Schema::create('payment_processing_charges', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('plan_id');
-            $table->string('plan_type');
-            $table->string('payment_gateway');
-            $table->decimal('payment_processing_charge')->default(2.00);
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('payment_processing_charges')) {
+            Schema::create('payment_processing_charges', function (Blueprint $table) {
+                $table->id();
+                $table->unsignedBigInteger('plan_id');
+                $table->string('plan_type');
+                $table->string('payment_gateway');
+                $table->decimal('payment_processing_charge')->default(2.00);
+                $table->timestamps();
+            });
+        }
     }
 
     /**

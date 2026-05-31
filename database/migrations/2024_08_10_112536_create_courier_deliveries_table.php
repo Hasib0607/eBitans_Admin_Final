@@ -12,17 +12,19 @@ return new class extends Migration {
      */
     public function up()
     {
-        Schema::create('courier_deliveries', function (Blueprint $table) {
-            $table->id();
-            $table->string('courier_name');
-            $table->string('courier_store_id')->nullable();
-            $table->string('consignment_id')->nullable();
-            $table->string('tracking_code')->nullable();
-            $table->string('merchant_order_id')->nullable();
-            $table->string('delivery_status')->nullable();
-            $table->string('delivery_fee')->nullable();
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('courier_deliveries')) {
+            Schema::create('courier_deliveries', function (Blueprint $table) {
+                $table->id();
+                $table->string('courier_name');
+                $table->string('courier_store_id')->nullable();
+                $table->string('consignment_id')->nullable();
+                $table->string('tracking_code')->nullable();
+                $table->string('merchant_order_id')->nullable();
+                $table->string('delivery_status')->nullable();
+                $table->string('delivery_fee')->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
     /**

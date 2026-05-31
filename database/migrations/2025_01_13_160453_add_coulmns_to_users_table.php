@@ -13,7 +13,9 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dateTime('comment_date')->after('comment')->nullable();
+            if (! Schema::hasColumn('users', 'comment_date')) {
+                $table->dateTime('comment_date')->after('comment')->nullable();
+            }
         });
     }
 

@@ -14,7 +14,9 @@ return new class extends Migration
     public function up()
     {
         Schema::table('products', function (Blueprint $table) {
-            $table->string('currency_id')->default(1);
+            if (! Schema::hasColumn('products', 'currency_id')) {
+                $table->string('currency_id')->default(1);
+            }
         });
     }
 

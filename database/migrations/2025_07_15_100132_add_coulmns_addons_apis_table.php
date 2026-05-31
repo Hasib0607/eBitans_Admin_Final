@@ -13,7 +13,9 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('addons_apis', function (Blueprint $table) {
-            $table->tinyInteger('position')->after('status')->default(0);
+            if (! Schema::hasColumn('addons_apis', 'position')) {
+                $table->tinyInteger('position')->after('status')->default(0);
+            }
         });
     }
 

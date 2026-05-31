@@ -13,14 +13,30 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('marchant_payment_getways', function (Blueprint $table) {
-            $table->string('amarpay_min_withdraw')->after('stripe')->nullable()->default(1000);
-            $table->string('amarpay_max_withdraw')->after('amarpay_min_withdraw')->nullable();
-            $table->string('ssl_min_withdraw')->after('amarpay_max_withdraw')->nullable()->default(1000);
-            $table->string('ssl_max_withdraw')->after('ssl_min_withdraw')->nullable();
-            $table->string('paypal_min_withdraw')->after('ssl_max_withdraw')->nullable()->default(20);
-            $table->string('paypal_max_withdraw')->after('paypal_min_withdraw')->nullable();
-            $table->string('stripe_min_withdraw')->after('paypal_max_withdraw')->nullable()->default(20);
-            $table->string('stripe_max_withdraw')->after('stripe_min_withdraw')->nullable();
+            if (! Schema::hasColumn('marchant_payment_getways', 'amarpay_min_withdraw')) {
+                $table->string('amarpay_min_withdraw')->after('stripe')->nullable()->default(1000);
+            }
+            if (! Schema::hasColumn('marchant_payment_getways', 'amarpay_max_withdraw')) {
+                $table->string('amarpay_max_withdraw')->after('amarpay_min_withdraw')->nullable();
+            }
+            if (! Schema::hasColumn('marchant_payment_getways', 'ssl_min_withdraw')) {
+                $table->string('ssl_min_withdraw')->after('amarpay_max_withdraw')->nullable()->default(1000);
+            }
+            if (! Schema::hasColumn('marchant_payment_getways', 'ssl_max_withdraw')) {
+                $table->string('ssl_max_withdraw')->after('ssl_min_withdraw')->nullable();
+            }
+            if (! Schema::hasColumn('marchant_payment_getways', 'paypal_min_withdraw')) {
+                $table->string('paypal_min_withdraw')->after('ssl_max_withdraw')->nullable()->default(20);
+            }
+            if (! Schema::hasColumn('marchant_payment_getways', 'paypal_max_withdraw')) {
+                $table->string('paypal_max_withdraw')->after('paypal_min_withdraw')->nullable();
+            }
+            if (! Schema::hasColumn('marchant_payment_getways', 'stripe_min_withdraw')) {
+                $table->string('stripe_min_withdraw')->after('paypal_max_withdraw')->nullable()->default(20);
+            }
+            if (! Schema::hasColumn('marchant_payment_getways', 'stripe_max_withdraw')) {
+                $table->string('stripe_max_withdraw')->after('stripe_min_withdraw')->nullable();
+            }
         });
     }
 

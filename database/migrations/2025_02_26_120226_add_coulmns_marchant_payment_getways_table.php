@@ -13,8 +13,12 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('marchant_payment_getways', function (Blueprint $table) {
-            $table->enum('payment_gatway', ["bkash", "nagad", "rocket", "amarpay", "paypal", "stripe", "ssl"])->after('store_id')->nullable();
-            $table->tinyInteger('status')->after('payment_gatway')->default(0)->comment("1=Active|0=Inactive");
+            if (! Schema::hasColumn('marchant_payment_getways', 'payment_gatway')) {
+                $table->enum('payment_gatway', ["bkash", "nagad", "rocket", "amarpay", "paypal", "stripe", "ssl"])->after('store_id')->nullable();
+            }
+            if (! Schema::hasColumn('marchant_payment_getways', 'status')) {
+                $table->tinyInteger('status')->after('payment_gatway')->default(0)->comment("1=Active|0=Inactive");
+            }
         });
     }
 

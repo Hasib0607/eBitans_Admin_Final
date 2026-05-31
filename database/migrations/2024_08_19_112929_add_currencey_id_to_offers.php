@@ -13,7 +13,9 @@
         public function up()
         {
             Schema::table('offers', function (Blueprint $table) {
-                $table->bigInteger('currency_id')->default(1)->after('id')->index();
+                if (! Schema::hasColumn('offers', 'currency_id')) {
+                    $table->bigInteger('currency_id')->default(1)->after('id')->index();
+                }
             });
         }
 

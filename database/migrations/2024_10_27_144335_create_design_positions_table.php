@@ -12,13 +12,15 @@ return new class extends Migration {
      */
     public function up()
     {
-        Schema::create('design_positions', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('store_id');
-            $table->string('name');
-            $table->integer('position')->default(0);
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('design_positions')) {
+            Schema::create('design_positions', function (Blueprint $table) {
+                $table->id();
+                $table->unsignedBigInteger('store_id');
+                $table->string('name');
+                $table->integer('position')->default(0);
+                $table->timestamps();
+            });
+        }
     }
 
     /**

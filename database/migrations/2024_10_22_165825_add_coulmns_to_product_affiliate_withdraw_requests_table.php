@@ -13,7 +13,9 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('product_affiliate_withdraw_requests', function (Blueprint $table) {
-            $table->longText('comment')->after('status')->nullable();
+            if (! Schema::hasColumn('product_affiliate_withdraw_requests', 'comment')) {
+                $table->longText('comment')->after('status')->nullable();
+            }
         });
     }
 

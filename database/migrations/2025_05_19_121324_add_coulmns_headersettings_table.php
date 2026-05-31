@@ -13,7 +13,9 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('headersettings', function (Blueprint $table) {
-            $table->json('shipping_methods')->after('tax')->nullable();
+            if (! Schema::hasColumn('headersettings', 'shipping_methods')) {
+                $table->json('shipping_methods')->after('tax')->nullable();
+            }
         });
     }
 

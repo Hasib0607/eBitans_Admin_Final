@@ -14,8 +14,12 @@ return new class extends Migration
     public function up()
     {
         Schema::table('addons_apis', function (Blueprint $table) {
-            $table->string('usd_price')->nullable()->after('price');
-            $table->string('usd_offer_price')->nullable()->after('usd_price');
+            if (! Schema::hasColumn('addons_apis', 'usd_price')) {
+                $table->string('usd_price')->nullable()->after('price');
+            }
+            if (! Schema::hasColumn('addons_apis', 'usd_offer_price')) {
+                $table->string('usd_offer_price')->nullable()->after('usd_price');
+            }
         });
     }
 

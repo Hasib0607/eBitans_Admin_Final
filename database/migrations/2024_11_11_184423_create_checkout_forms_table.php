@@ -12,13 +12,15 @@ return new class extends Migration {
      */
     public function up()
     {
-        Schema::create('checkout_forms', function (Blueprint $table) {
-            $table->id();
-            $table->string("name");
-            $table->tinyInteger("status")->default(0)->comment("0=Inactive|1=Active");
-            $table->string("store_id")->nullable();
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('checkout_forms')) {
+            Schema::create('checkout_forms', function (Blueprint $table) {
+                $table->id();
+                $table->string("name");
+                $table->tinyInteger("status")->default(0)->comment("0=Inactive|1=Active");
+                $table->string("store_id")->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
     /**

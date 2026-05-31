@@ -12,13 +12,15 @@ return new class extends Migration {
      */
     public function up()
     {
-        Schema::create('admin_chat_supports', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId("store_id")->constrained("stores")->onDelete('cascade');
-            $table->integer("support")->default(0);
-            $table->dateTime("date")->nullable();
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('admin_chat_supports')) {
+            Schema::create('admin_chat_supports', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId("store_id")->constrained("stores")->onDelete('cascade');
+                $table->integer("support")->default(0);
+                $table->dateTime("date")->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
     /**

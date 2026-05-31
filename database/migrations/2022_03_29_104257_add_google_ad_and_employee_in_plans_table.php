@@ -14,8 +14,12 @@ return new class extends Migration
     public function up()
     {
         Schema::table('plans', function (Blueprint $table) {
-            $table->string('google_ad')->nullable();
-            $table->string('employees')->nullable();
+            if (! Schema::hasColumn('plans', 'google_ad')) {
+                $table->string('google_ad')->nullable();
+            }
+            if (! Schema::hasColumn('plans', 'employees')) {
+                $table->string('employees')->nullable();
+            }
         });
     }
 

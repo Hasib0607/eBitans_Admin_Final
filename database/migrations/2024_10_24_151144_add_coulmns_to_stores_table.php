@@ -13,7 +13,9 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('stores', function (Blueprint $table) {
-            $table->tinyInteger('call_status')->after('pay_noti')->default(0);
+            if (! Schema::hasColumn('stores', 'call_status')) {
+                $table->tinyInteger('call_status')->after('pay_noti')->default(0);
+            }
         });
     }
 

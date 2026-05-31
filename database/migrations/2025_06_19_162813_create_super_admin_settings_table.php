@@ -12,15 +12,17 @@ return new class extends Migration {
      */
     public function up()
     {
-        Schema::create('super_admin_settings', function (Blueprint $table) {
-            $table->id();
-            $table->string("name")->unique();
-            $table->longText("value")->nullable();
-            $table->unsignedBigInteger("user_id")->nullable();
-
-            $table->foreign("user_id")->references("id")->on("users")->nullOnDelete();
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('super_admin_settings')) {
+            Schema::create('super_admin_settings', function (Blueprint $table) {
+                $table->id();
+                $table->string("name")->unique();
+                $table->longText("value")->nullable();
+                $table->unsignedBigInteger("user_id")->nullable();
+    
+                $table->foreign("user_id")->references("id")->on("users")->nullOnDelete();
+                $table->timestamps();
+            });
+        }
     }
 
     /**

@@ -12,11 +12,13 @@ return new class extends Migration {
      */
     public function up()
     {
-        Schema::create('marchant_payment_getways', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('store_id');
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('marchant_payment_getways')) {
+            Schema::create('marchant_payment_getways', function (Blueprint $table) {
+                $table->id();
+                $table->unsignedBigInteger('store_id');
+                $table->timestamps();
+            });
+        }
     }
 
     /**

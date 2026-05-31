@@ -12,14 +12,16 @@ return new class extends Migration {
      */
     public function up()
     {
-        Schema::create('affiliate_f_a_q_s', function (Blueprint $table) {
-            $table->id();
-            $table->longText('question');
-            $table->longText('answer')->nullable();
-            $table->string('video_link')->nullable();
-            $table->tinyInteger('status',)->default(0)->comment('0=Inactive|1=Active');
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('affiliate_f_a_q_s')) {
+            Schema::create('affiliate_f_a_q_s', function (Blueprint $table) {
+                $table->id();
+                $table->longText('question');
+                $table->longText('answer')->nullable();
+                $table->string('video_link')->nullable();
+                $table->tinyInteger('status',)->default(0)->comment('0=Inactive|1=Active');
+                $table->timestamps();
+            });
+        }
     }
 
     /**

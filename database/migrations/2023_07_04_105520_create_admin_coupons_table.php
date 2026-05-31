@@ -13,20 +13,22 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('admin_coupons', function (Blueprint $table) {
-            $table->id();
-            $table->string('coupon_code')->nullable();
-            $table->date('start_date')->nullable();
-            $table->date('end_date')->nullable();
-            $table->string('discount_type')->nullable();
-            $table->float('discount_amount')->nullable();
-            $table->string('min_purchase')->nullable();
-            $table->string('max_purchase')->nullable();
-            $table->string('max_use')->nullable();
-            $table->string('status')->nullable();
-            $table->timestamps();
-            $table->softDeletes();
-        });
+        if (! Schema::hasTable('admin_coupons')) {
+            Schema::create('admin_coupons', function (Blueprint $table) {
+                $table->id();
+                $table->string('coupon_code')->nullable();
+                $table->date('start_date')->nullable();
+                $table->date('end_date')->nullable();
+                $table->string('discount_type')->nullable();
+                $table->float('discount_amount')->nullable();
+                $table->string('min_purchase')->nullable();
+                $table->string('max_purchase')->nullable();
+                $table->string('max_use')->nullable();
+                $table->string('status')->nullable();
+                $table->timestamps();
+                $table->softDeletes();
+            });
+        }
     }
 
     /**

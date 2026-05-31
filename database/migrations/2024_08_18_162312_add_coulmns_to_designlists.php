@@ -13,9 +13,17 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('designlists', function (Blueprint $table) {
-            $table->string('title')->nullable()->after('value');
-            $table->string('title_color')->nullable()->after('title');
-            $table->string('title_bg')->nullable()->after('title_color');
+            if (! Schema::hasColumn('designlists', 'title')) {
+                $table->string('title')->nullable()->after('value');
+            }
+
+            if (! Schema::hasColumn('designlists', 'title_color')) {
+                $table->string('title_color')->nullable()->after('title');
+            }
+
+            if (! Schema::hasColumn('designlists', 'title_bg')) {
+                $table->string('title_bg')->nullable()->after('title_color');
+            }
         });
     }
 

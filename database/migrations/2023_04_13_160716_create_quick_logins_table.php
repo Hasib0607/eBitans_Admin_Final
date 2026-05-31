@@ -13,6 +13,10 @@ return new class extends Migration
      */
     public function up()
     {
+        if (Schema::hasTable('quick_logins')) {
+            return;
+        }
+
         Schema::create('quick_logins', function (Blueprint $table) {
             $table->id();
             $table->integer('modulus_id')->nullable();

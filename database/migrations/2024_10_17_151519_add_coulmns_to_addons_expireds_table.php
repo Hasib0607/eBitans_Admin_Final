@@ -13,7 +13,9 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('addons_expireds', function (Blueprint $table) {
-            $table->bigInteger('pos_plan_id')->after('addons_id')->nullable();
+            if (! Schema::hasColumn('addons_expireds', 'pos_plan_id')) {
+                $table->bigInteger('pos_plan_id')->after('addons_id')->nullable();
+            }
         });
     }
 

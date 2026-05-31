@@ -12,12 +12,14 @@ return new class extends Migration {
      */
     public function up()
     {
-        Schema::create('zone_records', function (Blueprint $table) {
-            $table->id();
-            $table->string("type");
-            $table->string("value");
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('zone_records')) {
+            Schema::create('zone_records', function (Blueprint $table) {
+                $table->id();
+                $table->string("type");
+                $table->string("value");
+                $table->timestamps();
+            });
+        }
     }
 
     /**

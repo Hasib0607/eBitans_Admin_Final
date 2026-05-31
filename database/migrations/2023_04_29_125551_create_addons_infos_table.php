@@ -13,16 +13,18 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('addons_infos', function (Blueprint $table) {
-            $table->id();
-            $table->integer('addons_id')->nullable();
-            $table->string('type')->nullable();
-            $table->string('name')->nullable();
-            $table->string('month_or_value')->nullable();
-            $table->string('price')->nullable();
-            $table->timestamps();
-            $table->softDeletes();
-        });
+        if (! Schema::hasTable('addons_infos')) {
+            Schema::create('addons_infos', function (Blueprint $table) {
+                $table->id();
+                $table->integer('addons_id')->nullable();
+                $table->string('type')->nullable();
+                $table->string('name')->nullable();
+                $table->string('month_or_value')->nullable();
+                $table->string('price')->nullable();
+                $table->timestamps();
+                $table->softDeletes();
+            });
+        }
     }
 
     /**

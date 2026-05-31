@@ -13,8 +13,12 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('quick_logins', function (Blueprint $table) {
-            $table->longText('test_event_code')->after('general_access_token')->nullable();
-            $table->longText('domain_verification_code')->after('test_event_code')->nullable();
+            if (! Schema::hasColumn('quick_logins', 'test_event_code')) {
+                $table->longText('test_event_code')->after('general_access_token')->nullable();
+            }
+            if (! Schema::hasColumn('quick_logins', 'domain_verification_code')) {
+                $table->longText('domain_verification_code')->after('test_event_code')->nullable();
+            }
         });
     }
 

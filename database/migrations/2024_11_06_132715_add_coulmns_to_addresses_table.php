@@ -13,7 +13,9 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('addresses', function (Blueprint $table) {
-            $table->tinyInteger('district_id')->after('address')->nullable();
+            if (! Schema::hasColumn('addresses', 'district_id')) {
+                $table->tinyInteger('district_id')->after('address')->nullable();
+            }
         });
     }
 

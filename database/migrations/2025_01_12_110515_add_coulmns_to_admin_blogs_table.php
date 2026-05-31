@@ -13,7 +13,9 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('admin_blogs', function (Blueprint $table) {
-            $table->tinyInteger('website')->after('permalink')->nullable();
+            if (! Schema::hasColumn('admin_blogs', 'website')) {
+                $table->tinyInteger('website')->after('permalink')->nullable();
+            }
         });
     }
 

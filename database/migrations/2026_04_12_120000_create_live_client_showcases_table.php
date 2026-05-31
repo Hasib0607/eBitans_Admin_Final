@@ -8,14 +8,16 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('live_client_showcases', function (Blueprint $table) {
-            $table->id();
-            $table->string('title')->nullable();
-            $table->text('url');
-            $table->unsignedInteger('sort_order')->default(0);
-            $table->boolean('is_active')->default(true);
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('live_client_showcases')) {
+            Schema::create('live_client_showcases', function (Blueprint $table) {
+                $table->id();
+                $table->string('title')->nullable();
+                $table->text('url');
+                $table->unsignedInteger('sort_order')->default(0);
+                $table->boolean('is_active')->default(true);
+                $table->timestamps();
+            });
+        }
     }
 
     public function down(): void

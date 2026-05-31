@@ -12,12 +12,14 @@ return new class extends Migration {
      */
     public function up()
     {
-        Schema::create('blog_cover_images', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('store_id')->nullable();
-            $table->string('image');
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('blog_cover_images')) {
+            Schema::create('blog_cover_images', function (Blueprint $table) {
+                $table->id();
+                $table->unsignedBigInteger('store_id')->nullable();
+                $table->string('image');
+                $table->timestamps();
+            });
+        }
     }
 
     /**

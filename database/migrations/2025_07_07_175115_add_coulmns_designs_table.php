@@ -13,9 +13,15 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('designs', function (Blueprint $table) {
-            $table->string('announcement')->after('youtube')->nullable()->default("null");
-            $table->string('about')->after('announcement')->nullable()->default("null");
-            $table->string('newsletter')->after('about')->nullable()->default("null");
+            if (! Schema::hasColumn('designs', 'announcement')) {
+                $table->string('announcement')->after('youtube')->nullable()->default("null");
+            }
+            if (! Schema::hasColumn('designs', 'about')) {
+                $table->string('about')->after('announcement')->nullable()->default("null");
+            }
+            if (! Schema::hasColumn('designs', 'newsletter')) {
+                $table->string('newsletter')->after('about')->nullable()->default("null");
+            }
         });
     }
 

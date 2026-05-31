@@ -13,8 +13,12 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('designs', function (Blueprint $table) {
-            $table->string('blog')->after('offer')->nullable();
-            $table->string('contact')->after('blog')->nullable();
+            if (! Schema::hasColumn('designs', 'blog')) {
+                $table->string('blog')->after('offer')->nullable();
+            }
+            if (! Schema::hasColumn('designs', 'contact')) {
+                $table->string('contact')->after('blog')->nullable();
+            }
         });
     }
 

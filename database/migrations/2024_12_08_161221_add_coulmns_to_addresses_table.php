@@ -13,8 +13,12 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('addresses', function (Blueprint $table) {
-            $table->string('email')->after('phone')->nullable();
-            $table->string('note')->after('address')->nullable();
+            if (! Schema::hasColumn('addresses', 'email')) {
+                $table->string('email')->after('phone')->nullable();
+            }
+            if (! Schema::hasColumn('addresses', 'note')) {
+                $table->string('note')->after('address')->nullable();
+            }
         });
     }
 

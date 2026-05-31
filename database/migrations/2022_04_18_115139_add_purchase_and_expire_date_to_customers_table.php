@@ -14,8 +14,12 @@ return new class extends Migration
     public function up()
     {
         Schema::table('customers', function (Blueprint $table) {
-            $table->date('purchase_date')->nullable;
-            $table->date('expiry_date')->nullable();
+            if (! Schema::hasColumn('customers', 'purchase_date')) {
+                $table->date('purchase_date')->nullable;
+            }
+            if (! Schema::hasColumn('customers', 'expiry_date')) {
+                $table->date('expiry_date')->nullable();
+            }
         });
     }
 

@@ -13,7 +13,9 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('veriants', function (Blueprint $table) {
-            $table->string('image')->nullable()->after('additional_price');
+            if (! Schema::hasColumn('veriants', 'image')) {
+                $table->string('image')->nullable()->after('additional_price');
+            }
         });
     }
 

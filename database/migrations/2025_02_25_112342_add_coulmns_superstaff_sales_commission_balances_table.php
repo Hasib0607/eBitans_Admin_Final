@@ -13,8 +13,12 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('superstaff_sales_commission_balances', function (Blueprint $table) {
-            $table->tinyInteger('pay_status')->after('renew_commission')->default(0)->comment("0=Unpaid|1=Paid");
-            $table->integer('commission_id')->after('pay_status')->nullable();
+            if (! Schema::hasColumn('superstaff_sales_commission_balances', 'pay_status')) {
+                $table->tinyInteger('pay_status')->after('renew_commission')->default(0)->comment("0=Unpaid|1=Paid");
+            }
+            if (! Schema::hasColumn('superstaff_sales_commission_balances', 'commission_id')) {
+                $table->integer('commission_id')->after('pay_status')->nullable();
+            }
         });
     }
 

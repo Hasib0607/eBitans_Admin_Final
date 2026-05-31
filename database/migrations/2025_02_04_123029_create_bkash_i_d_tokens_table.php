@@ -12,13 +12,15 @@ return new class extends Migration {
      */
     public function up()
     {
-        Schema::create('bkash_i_d_tokens', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('store_id')->nullable();
-            $table->tinyInteger('isAdmin')->default(0)->comment("0=Store|1=SuperAdmin");
-            $table->longText('id_token')->nullable();
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('bkash_i_d_tokens')) {
+            Schema::create('bkash_i_d_tokens', function (Blueprint $table) {
+                $table->id();
+                $table->unsignedBigInteger('store_id')->nullable();
+                $table->tinyInteger('isAdmin')->default(0)->comment("0=Store|1=SuperAdmin");
+                $table->longText('id_token')->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
     /**

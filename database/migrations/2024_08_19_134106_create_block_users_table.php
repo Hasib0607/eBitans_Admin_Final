@@ -12,13 +12,15 @@ return new class extends Migration {
      */
     public function up()
     {
-        Schema::create('block_users', function (Blueprint $table) {
-            $table->id();
-            $table->string("user_id")->nullable();
-            $table->string("store_id")->nullable();
-            $table->tinyInteger("status")->default(0)->comment("0=Inactive,1=Active");
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('block_users')) {
+            Schema::create('block_users', function (Blueprint $table) {
+                $table->id();
+                $table->string("user_id")->nullable();
+                $table->string("store_id")->nullable();
+                $table->tinyInteger("status")->default(0)->comment("0=Inactive,1=Active");
+                $table->timestamps();
+            });
+        }
     }
 
     /**

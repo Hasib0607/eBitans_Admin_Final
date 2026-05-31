@@ -12,12 +12,14 @@ return new class extends Migration {
      */
     public function up()
     {
-        Schema::create('superstaff_permissions', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('role_id')->nullable();
-            $table->longText('permission')->nullable();
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('superstaff_permissions')) {
+            Schema::create('superstaff_permissions', function (Blueprint $table) {
+                $table->id();
+                $table->unsignedBigInteger('role_id')->nullable();
+                $table->longText('permission')->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
     /**

@@ -13,7 +13,9 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('stores', function (Blueprint $table) {
-            $table->boolean('store_status')->after('status')->default(1)->comment("0=Inactive|1=Active");
+            if (! Schema::hasColumn('stores', 'store_status')) {
+                $table->boolean('store_status')->after('status')->default(1)->comment("0=Inactive|1=Active");
+            }
         });
     }
 

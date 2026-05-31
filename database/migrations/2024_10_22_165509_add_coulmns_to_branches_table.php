@@ -13,7 +13,9 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('branches', function (Blueprint $table) {
-            $table->double('tax')->after('address')->default(0.00);
+            if (! Schema::hasColumn('branches', 'tax')) {
+                $table->double('tax')->after('address')->default(0.00);
+            }
         });
     }
 

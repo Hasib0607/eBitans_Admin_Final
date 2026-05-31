@@ -12,14 +12,16 @@ return new class extends Migration {
      */
     public function up()
     {
-        Schema::create('plan_details', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('plan_id')->index();
-            $table->string('title', 50);
-            $table->string('type', 50);
-            $table->integer('position')->default(11);
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('plan_details')) {
+            Schema::create('plan_details', function (Blueprint $table) {
+                $table->id();
+                $table->unsignedBigInteger('plan_id')->index();
+                $table->string('title', 50);
+                $table->string('type', 50);
+                $table->integer('position')->default(11);
+                $table->timestamps();
+            });
+        }
     }
 
     /**

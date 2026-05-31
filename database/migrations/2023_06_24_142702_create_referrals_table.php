@@ -13,15 +13,17 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('referrals', function (Blueprint $table) {
-            $table->id();
-            $table->integer('user_id')->nullable();
-            $table->integer('referral_id')->nullable();
-            $table->integer('plan_id')->nullable();
-            $table->double('plan_price')->nullable();
-            $table->timestamps();
-            $table->softDeletes();
-        });
+        if (! Schema::hasTable('referrals')) {
+            Schema::create('referrals', function (Blueprint $table) {
+                $table->id();
+                $table->integer('user_id')->nullable();
+                $table->integer('referral_id')->nullable();
+                $table->integer('plan_id')->nullable();
+                $table->double('plan_price')->nullable();
+                $table->timestamps();
+                $table->softDeletes();
+            });
+        }
     }
 
     /**

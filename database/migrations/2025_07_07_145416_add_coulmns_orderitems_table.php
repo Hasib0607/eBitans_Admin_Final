@@ -13,7 +13,9 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('orderitems', function (Blueprint $table) {
-            $table->json('product_snapshot')->after('additional_price')->nullable();
+            if (! Schema::hasColumn('orderitems', 'product_snapshot')) {
+                $table->json('product_snapshot')->after('additional_price')->nullable();
+            }
         });
     }
 

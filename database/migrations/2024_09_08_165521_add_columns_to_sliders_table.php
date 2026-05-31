@@ -14,9 +14,15 @@ return new class extends Migration
     public function up()
     {
         Schema::table('sliders', function (Blueprint $table) {
-            $table->string('subtitle_color', 20)->after('color')->nullable();
-            $table->string('button', 50)->after('subtitle')->nullable();
-            $table->string('button_color', 20)->after('subtitle_color')->nullable();
+            if (! Schema::hasColumn('sliders', 'subtitle_color')) {
+                $table->string('subtitle_color', 20)->after('color')->nullable();
+            }
+            if (! Schema::hasColumn('sliders', 'button')) {
+                $table->string('button', 50)->after('subtitle')->nullable();
+            }
+            if (! Schema::hasColumn('sliders', 'button_color')) {
+                $table->string('button_color', 20)->after('subtitle_color')->nullable();
+            }
         });
     }
 

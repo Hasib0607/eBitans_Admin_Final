@@ -12,16 +12,18 @@ return new class extends Migration {
      */
     public function up()
     {
-        Schema::create('pse_visitor_counters', function (Blueprint $table) {
-            $table->id();
-            $table->string('ip');
-            $table->string('appr_id');
-            $table->string('product_id');
-            $table->string('store_id');
-            $table->string('store_url');
-            $table->string('status');
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('pse_visitor_counters')) {
+            Schema::create('pse_visitor_counters', function (Blueprint $table) {
+                $table->id();
+                $table->string('ip');
+                $table->string('appr_id');
+                $table->string('product_id');
+                $table->string('store_id');
+                $table->string('store_url');
+                $table->string('status');
+                $table->timestamps();
+            });
+        }
     }
 
     /**

@@ -13,12 +13,24 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('store_designs', function (Blueprint $table) {
-            $table->string('subtitle')->after('title_color')->nullable();
-            $table->string('subtitle_color')->after('subtitle')->nullable();
-            $table->string('button_bg_color')->after('button_color')->nullable();
-            $table->string('button1')->after('button_color')->nullable();
-            $table->string('button1_color')->after('button1')->nullable();
-            $table->string('button1_bg_color')->after('button1_color')->nullable();
+            if (! Schema::hasColumn('store_designs', 'subtitle')) {
+                $table->string('subtitle')->after('title_color')->nullable();
+            }
+            if (! Schema::hasColumn('store_designs', 'subtitle_color')) {
+                $table->string('subtitle_color')->after('subtitle')->nullable();
+            }
+            if (! Schema::hasColumn('store_designs', 'button_bg_color')) {
+                $table->string('button_bg_color')->after('button_color')->nullable();
+            }
+            if (! Schema::hasColumn('store_designs', 'button1')) {
+                $table->string('button1')->after('button_color')->nullable();
+            }
+            if (! Schema::hasColumn('store_designs', 'button1_color')) {
+                $table->string('button1_color')->after('button1')->nullable();
+            }
+            if (! Schema::hasColumn('store_designs', 'button1_bg_color')) {
+                $table->string('button1_bg_color')->after('button1_color')->nullable();
+            }
         });
     }
 

@@ -13,25 +13,27 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('orders', function (Blueprint $table) {
-            $table->id();
-            $table->string('uid')->nullable();
-            $table->string('reference_no')->nullable();
-            $table->string('subtotal')->nullable();
-            $table->string('discount')->nullable();
-            $table->string('shipping')->nullable();
-            $table->string('tax')->nullable();
-            $table->string('total')->nullable();
-            $table->string('name')->nullable();
-            $table->string('phone')->nullable();
-            $table->string('email')->nullable();
-            $table->string('address')->nullable();
-            $table->string('note')->nullable();
-            $table->string('status')->nullable();
-            $table->string('transaction_id')->nullable();
-            $table->string('currency')->nullable();
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('orders')) {
+            Schema::create('orders', function (Blueprint $table) {
+                $table->id();
+                $table->string('uid')->nullable();
+                $table->string('reference_no')->nullable();
+                $table->string('subtotal')->nullable();
+                $table->string('discount')->nullable();
+                $table->string('shipping')->nullable();
+                $table->string('tax')->nullable();
+                $table->string('total')->nullable();
+                $table->string('name')->nullable();
+                $table->string('phone')->nullable();
+                $table->string('email')->nullable();
+                $table->string('address')->nullable();
+                $table->string('note')->nullable();
+                $table->string('status')->nullable();
+                $table->string('transaction_id')->nullable();
+                $table->string('currency')->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
     /**

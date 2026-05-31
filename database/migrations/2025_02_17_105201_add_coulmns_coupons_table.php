@@ -13,7 +13,9 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('coupons', function (Blueprint $table) {
-            $table->string('payment_method')->after('shipping_area')->nullable();
+            if (! Schema::hasColumn('coupons', 'payment_method')) {
+                $table->string('payment_method')->after('shipping_area')->nullable();
+            }
         });
     }
 

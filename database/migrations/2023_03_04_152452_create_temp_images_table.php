@@ -13,14 +13,16 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('temp_images', function (Blueprint $table) {
-            $table->id();
-            $table->bigInteger('user_id')->nullable();
-            $table->bigInteger('store_id')->nullable();
-            $table->string('image')->nullable();
-            $table->string('status')->nullable();
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('temp_images')) {
+            Schema::create('temp_images', function (Blueprint $table) {
+                $table->id();
+                $table->bigInteger('user_id')->nullable();
+                $table->bigInteger('store_id')->nullable();
+                $table->string('image')->nullable();
+                $table->string('status')->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
     /**

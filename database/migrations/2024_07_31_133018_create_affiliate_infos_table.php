@@ -12,11 +12,13 @@ return new class extends Migration {
      */
     public function up()
     {
-        Schema::create('affiliate_infos', function (Blueprint $table) {
-            $table->id();
-            $table->string('affiliate_charge');
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('affiliate_infos')) {
+            Schema::create('affiliate_infos', function (Blueprint $table) {
+                $table->id();
+                $table->string('affiliate_charge');
+                $table->timestamps();
+            });
+        }
     }
 
     /**

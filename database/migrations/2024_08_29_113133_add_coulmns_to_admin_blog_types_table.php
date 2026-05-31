@@ -13,8 +13,12 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('admin_blog_types', function (Blueprint $table) {
-            $table->unsignedBigInteger('user_id')->nullable()->after('status');
-            $table->unsignedBigInteger('store_id')->nullable()->after('user_id');
+            if (! Schema::hasColumn('admin_blog_types', 'user_id')) {
+                $table->unsignedBigInteger('user_id')->nullable()->after('status');
+            }
+            if (! Schema::hasColumn('admin_blog_types', 'store_id')) {
+                $table->unsignedBigInteger('store_id')->nullable()->after('user_id');
+            }
         });
     }
 

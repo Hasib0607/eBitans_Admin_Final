@@ -13,10 +13,18 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('paymentgateways', function (Blueprint $table) {
-            $table->string('merchant_id')->after('api_password')->nullable();
-            $table->string('merchant_number')->after('merchant_id')->nullable();
-            $table->longText('public_key')->after('merchant_number')->nullable();
-            $table->longText('private_key')->after('public_key')->nullable();
+            if (! Schema::hasColumn('paymentgateways', 'merchant_id')) {
+                $table->string('merchant_id')->after('api_password')->nullable();
+            }
+            if (! Schema::hasColumn('paymentgateways', 'merchant_number')) {
+                $table->string('merchant_number')->after('merchant_id')->nullable();
+            }
+            if (! Schema::hasColumn('paymentgateways', 'public_key')) {
+                $table->longText('public_key')->after('merchant_number')->nullable();
+            }
+            if (! Schema::hasColumn('paymentgateways', 'private_key')) {
+                $table->longText('private_key')->after('public_key')->nullable();
+            }
         });
     }
 

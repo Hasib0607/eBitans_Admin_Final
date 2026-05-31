@@ -13,13 +13,15 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('invoices', function (Blueprint $table) {
-            $table->id();
-            $table->string('reference_no')->nullable();
-            $table->string('order_id')->nullable();
-            $table->string('type')->nullable();
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('invoices')) {
+            Schema::create('invoices', function (Blueprint $table) {
+                $table->id();
+                $table->string('reference_no')->nullable();
+                $table->string('order_id')->nullable();
+                $table->string('type')->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
     /**

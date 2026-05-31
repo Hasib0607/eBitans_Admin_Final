@@ -13,7 +13,9 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('cartitems', function (Blueprint $table) {
-            $table->string('custome_order')->after('name')->nullable();
+            if (! Schema::hasColumn('cartitems', 'custome_order')) {
+                $table->string('custome_order')->after('name')->nullable();
+            }
         });
     }
 

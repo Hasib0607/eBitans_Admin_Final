@@ -13,7 +13,9 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('designlists', function (Blueprint $table) {
-            $table->string('bg_image')->after('image')->nullable();
+            if (! Schema::hasColumn('designlists', 'bg_image')) {
+                $table->string('bg_image')->after('image')->nullable();
+            }
         });
     }
 

@@ -14,7 +14,9 @@ return new class extends Migration
     public function up()
     {
         Schema::table('admin_coupons', function (Blueprint $table) {
-            $table->string('currency_type', 10)->default('BDT')->after('status');
+            if (! Schema::hasColumn('admin_coupons', 'currency_type')) {
+                $table->string('currency_type', 10)->default('BDT')->after('status');
+            }
         });
     }
 

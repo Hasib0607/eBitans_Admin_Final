@@ -13,17 +13,19 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('required_information_for_contents', function (Blueprint $table) {
-            $table->id();
-            $table->bigInteger('client_id');
-            $table->bigInteger('store_id');
-            $table->text('question_6')->nullable();
-            $table->text('question_7')->nullable();
-            $table->text('question_8')->nullable();
-            $table->text('question_9')->nullable();
-            $table->text('question_10')->nullable();
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('required_information_for_contents')) {
+            Schema::create('required_information_for_contents', function (Blueprint $table) {
+                $table->id();
+                $table->bigInteger('client_id');
+                $table->bigInteger('store_id');
+                $table->text('question_6')->nullable();
+                $table->text('question_7')->nullable();
+                $table->text('question_8')->nullable();
+                $table->text('question_9')->nullable();
+                $table->text('question_10')->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
     /**

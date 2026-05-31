@@ -13,7 +13,9 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('courier_deliveries', function (Blueprint $table) {
-            $table->unsignedBigInteger('store_id')->after('merchant_order_id')->nullable();
+            if (! Schema::hasColumn('courier_deliveries', 'store_id')) {
+                $table->unsignedBigInteger('store_id')->after('merchant_order_id')->nullable();
+            }
         });
     }
 

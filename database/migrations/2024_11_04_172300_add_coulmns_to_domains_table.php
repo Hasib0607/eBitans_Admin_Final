@@ -13,7 +13,9 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('domains', function (Blueprint $table) {
-            $table->tinyInteger('buy_domain')->after('remark')->default(0);
+            if (! Schema::hasColumn('domains', 'buy_domain')) {
+                $table->tinyInteger('buy_domain')->after('remark')->default(0);
+            }
         });
     }
 

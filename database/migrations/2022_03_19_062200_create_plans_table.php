@@ -13,15 +13,17 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('plans', function (Blueprint $table) {
-            $table->id();
-            $table->string('name')->nullable();
-            $table->string('products')->nullable();
-            $table->string('order')->nullable();
-            $table->string('type')->nullable();
-            $table->string('price')->nullable();
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('plans')) {
+            Schema::create('plans', function (Blueprint $table) {
+                $table->id();
+                $table->string('name')->nullable();
+                $table->string('products')->nullable();
+                $table->string('order')->nullable();
+                $table->string('type')->nullable();
+                $table->string('price')->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
     /**

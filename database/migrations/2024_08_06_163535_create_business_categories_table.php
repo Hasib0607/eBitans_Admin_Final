@@ -12,13 +12,15 @@
          */
         public function up()
         {
-            Schema::create('business_categories', function (Blueprint $table) {
-                $table->id();
-                $table->string('name');
-                $table->string('slug')->nullable();
-                $table->string('images')->nullable();
-                $table->timestamps();
-            });
+            if (! Schema::hasTable('business_categories')) {
+                Schema::create('business_categories', function (Blueprint $table) {
+                    $table->id();
+                    $table->string('name');
+                    $table->string('slug')->nullable();
+                    $table->string('images')->nullable();
+                    $table->timestamps();
+                });
+            }
         }
 
         /**

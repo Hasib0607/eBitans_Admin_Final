@@ -13,7 +13,9 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('posplans', function (Blueprint $table) {
-            $table->double('usd_price')->after('price')->default(0);
+            if (! Schema::hasColumn('posplans', 'usd_price')) {
+                $table->double('usd_price')->after('price')->default(0);
+            }
         });
     }
 

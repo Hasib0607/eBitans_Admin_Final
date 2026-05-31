@@ -13,7 +13,9 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('banners', function (Blueprint $table) {
-            $table->tinyInteger('type')->after('status')->default(0)->comment("0=Banner|1=Banner Bottom");
+            if (! Schema::hasColumn('banners', 'type')) {
+                $table->tinyInteger('type')->after('status')->default(0)->comment("0=Banner|1=Banner Bottom");
+            }
         });
     }
 

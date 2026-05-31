@@ -13,9 +13,15 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('products', function (Blueprint $table) {
-            $table->tinyInteger('discount_product')->default(0)->after('promotional_price');
-            $table->string('prev_discount')->nullable()->after('discount_product');
-            $table->date('expiry_date')->nullable()->after('ask_price');
+            if (! Schema::hasColumn('products', 'discount_product')) {
+                $table->tinyInteger('discount_product')->default(0)->after('promotional_price');
+            }
+            if (! Schema::hasColumn('products', 'prev_discount')) {
+                $table->string('prev_discount')->nullable()->after('discount_product');
+            }
+            if (! Schema::hasColumn('products', 'expiry_date')) {
+                $table->date('expiry_date')->nullable()->after('ask_price');
+            }
         });
     }
 

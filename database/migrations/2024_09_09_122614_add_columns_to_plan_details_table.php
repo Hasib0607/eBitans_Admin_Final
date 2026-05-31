@@ -14,7 +14,9 @@ return new class extends Migration
     public function up()
     {
         Schema::table('plan_details', function (Blueprint $table) {
-            $table->boolean('status')->after('position')->default(false);
+            if (! Schema::hasColumn('plan_details', 'status')) {
+                $table->boolean('status')->after('position')->default(false);
+            }
         });
     }
 

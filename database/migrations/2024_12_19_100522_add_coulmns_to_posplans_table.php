@@ -13,7 +13,9 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('posplans', function (Blueprint $table) {
-            $table->decimal('payment_processing_charge')->after('position')->default(0);
+            if (! Schema::hasColumn('posplans', 'payment_processing_charge')) {
+                $table->decimal('payment_processing_charge')->after('position')->default(0);
+            }
         });
     }
 

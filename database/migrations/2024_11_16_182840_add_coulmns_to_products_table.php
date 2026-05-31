@@ -13,8 +13,12 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('products', function (Blueprint $table) {
-            $table->string('volume')->after('quantity')->nullable();
-            $table->string('unit')->after('volume')->nullable();
+            if (! Schema::hasColumn('products', 'volume')) {
+                $table->string('volume')->after('quantity')->nullable();
+            }
+            if (! Schema::hasColumn('products', 'unit')) {
+                $table->string('unit')->after('volume')->nullable();
+            }
         });
     }
 

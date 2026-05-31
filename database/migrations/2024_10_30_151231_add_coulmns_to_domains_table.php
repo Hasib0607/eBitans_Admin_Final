@@ -13,9 +13,15 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('domains', function (Blueprint $table) {
-            $table->string('email')->after('name')->nullable();
-            $table->string('connect_status')->after('status')->nullable();
-            $table->string('remark')->after('connect_status')->nullable();
+            if (! Schema::hasColumn('domains', 'email')) {
+                $table->string('email')->after('name')->nullable();
+            }
+            if (! Schema::hasColumn('domains', 'connect_status')) {
+                $table->string('connect_status')->after('status')->nullable();
+            }
+            if (! Schema::hasColumn('domains', 'remark')) {
+                $table->string('remark')->after('connect_status')->nullable();
+            }
         });
     }
 

@@ -13,7 +13,9 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('stores', function (Blueprint $table) {
-            $table->string('analytic_email')->after('isCFileDelete')->nullable();
+            if (! Schema::hasColumn('stores', 'analytic_email')) {
+                $table->string('analytic_email')->after('isCFileDelete')->nullable();
+            }
         });
     }
 

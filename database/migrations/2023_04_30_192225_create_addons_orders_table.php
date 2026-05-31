@@ -13,6 +13,10 @@ return new class extends Migration
      */
     public function up()
     {
+        if (Schema::hasTable('addons_orders')) {
+            return;
+        }
+
         Schema::create('addons_orders', function (Blueprint $table) {
             $table->id();
             $table->bigInteger('user_id')->nullable();

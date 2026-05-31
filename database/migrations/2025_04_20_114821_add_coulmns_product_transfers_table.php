@@ -13,7 +13,9 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('product_transfers', function (Blueprint $table) {
-            $table->unsignedBigInteger('store_id')->after('transfer_qty')->nullable();
+            if (! Schema::hasColumn('product_transfers', 'store_id')) {
+                $table->unsignedBigInteger('store_id')->after('transfer_qty')->nullable();
+            }
         });
     }
 

@@ -13,7 +13,9 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('orderitems', function (Blueprint $table) {
-            $table->string('variant_id')->after('quantity')->nullable();
+            if (! Schema::hasColumn('orderitems', 'variant_id')) {
+                $table->string('variant_id')->after('quantity')->nullable();
+            }
         });
     }
 
