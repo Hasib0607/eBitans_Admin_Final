@@ -12,6 +12,9 @@ return new class extends Migration {
      */
     public function up()
     {
+        if (! Schema::hasTable('designlists')) {
+            return;
+        }
         Schema::table('designlists', function (Blueprint $table) {
             if (! Schema::hasColumn('designlists', 'title')) {
                 $table->string('title')->nullable()->after('value');
@@ -34,6 +37,9 @@ return new class extends Migration {
      */
     public function down()
     {
+        if (! Schema::hasTable('designlists')) {
+            return;
+        }
         Schema::table('designlists', function (Blueprint $table) {
             $table->dropColumn('title');
             $table->dropColumn('title_color');

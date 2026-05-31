@@ -12,6 +12,9 @@ return new class extends Migration {
      */
     public function up()
     {
+        if (! Schema::hasTable('designlists')) {
+            return;
+        }
         Schema::table('designlists', function (Blueprint $table) {
             // Check both columns before renaming to avoid duplicate-column errors.
             if (Schema::hasColumn('designlists', 'title_bg') && ! Schema::hasColumn('designlists', 'button_color')) {
@@ -58,6 +61,9 @@ return new class extends Migration {
      */
     public function down()
     {
+        if (! Schema::hasTable('designlists')) {
+            return;
+        }
         Schema::table('designlists', function (Blueprint $table) {
             // Drop 'button' column only if it exists
             if (Schema::hasColumn('designlists', 'button')) {

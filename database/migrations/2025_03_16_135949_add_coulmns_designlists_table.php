@@ -12,6 +12,9 @@ return new class extends Migration {
      */
     public function up()
     {
+        if (! Schema::hasTable('designlists')) {
+            return;
+        }
         Schema::table('designlists', function (Blueprint $table) {
             if (! Schema::hasColumn('designlists', 'bg_image')) {
                 $table->string('bg_image')->after('image')->nullable();
@@ -26,6 +29,9 @@ return new class extends Migration {
      */
     public function down()
     {
+        if (! Schema::hasTable('designlists')) {
+            return;
+        }
         Schema::table('designlists', function (Blueprint $table) {
             if (Schema::hasColumn('designlists', 'bg_image')) {
                 $table->dropColumn('bg_image');

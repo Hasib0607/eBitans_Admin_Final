@@ -12,6 +12,9 @@ return new class extends Migration {
      */
     public function up()
     {
+        if (! Schema::hasTable('designlists')) {
+            return;
+        }
         Schema::table('designlists', function (Blueprint $table) {
             if (! Schema::hasColumn('designlists', 'link')) {
                 $table->string('link')->after('button_bg_color')->nullable();
@@ -26,6 +29,9 @@ return new class extends Migration {
      */
     public function down()
     {
+        if (! Schema::hasTable('designlists')) {
+            return;
+        }
         Schema::table('designlists', function (Blueprint $table) {
             if (Schema::hasColumn('designlists', 'link')) {
                 $table->dropColumn('link');
