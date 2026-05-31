@@ -1,0 +1,345 @@
+.chatbox{
+    width:300px;
+    max-height:459px;
+    position:fixed;
+    bottom:90px;
+    right:0;
+}
+.chatbox .card-header{
+    background-color:#f1593a;
+    color:#fff;
+    height:5px;
+}
+.chatbox .card-footer{
+    height:65px;
+    border-top:1px solid gray;
+    
+}
+.chatbox .card-body{
+    max-height:330px;
+    overflow-y:auto;
+}
+.chatbox .card-body ul{
+    list-style:none;
+    padding-left:0px;
+    display:flex;
+    flex-direction: column;
+    overflow-y:auto;
+}
+.chatbox .card-body ul li.send{
+    display:flex;
+    width:100%;
+    justify-content: flex-end
+}
+.chatbox .card-body ul li.receive{
+    display:flex;
+    width:100%;
+    justify-content: flex-start
+}
+.chatbox .card-body ul li.send span{
+    background-color:green;
+    color:#fff;
+    padding:5px 10px;
+    border-radius:10px;
+    margin-bottom:5px;
+}
+.chatbox .card-body ul li.receive span{
+    background-color:gray;
+    color:#fff;
+    padding:5px 10px;
+    border-radius:10px;
+    margin-bottom:5px;
+}
+.chatbox .card-footer .send{
+    padding:10px 0px;
+    text-align:right;
+    margin-top:-25px;
+}
+.chatbox .card-footer .send .sendimg{
+ 
+}
+.chatbox .card-footer .send .messagebox{
+    position:relative;
+    left:-1px;
+    padding:0px;
+    width:70%;
+    border:1px solid #ccc;
+    height:39px;
+    border-radius:10px;
+}
+
+.chatbox1 .card-header{
+    background-color:black;
+    color:#fff;
+}
+
+.chatbox1 .card-body{
+    overflow-y:auto;
+}
+.chatbox1 .card-body ul{
+    list-style:none;
+    padding-left:0px;
+    display:flex;
+    flex-direction: column;
+    overflow-y:auto;
+}
+.chatbox1 .card-body ul li.send{
+    display:flex;
+    width:100%;
+    justify-content: flex-end;
+    border:0px !important;
+}
+.chatbox1 .card-body ul li.receive{
+    display:flex;
+    width:100%;
+    justify-content: flex-start;
+    border:0px !important;
+}
+.chatbox1 .card-body ul li.send span{
+    background-color:green;
+    color:#fff;
+    padding:5px 10px;
+    border-radius:5px;
+    margin-bottom:5px;
+}
+.chatbox1 .card-body ul li.receive span{
+    background-color:gray;
+    color:#fff;
+    padding:5px 10px;
+    border-radius:5px;
+    margin-bottom:5px;
+}
+.chatbox1 .card-footer .send{
+    padding:10px 0px;
+    text-align:right;
+    margin-top:-25px;
+}
+.chatbox1 .card-footer .send .sendimg{
+ 
+}
+.chatbox1 .card-footer .send .messagebox{
+    position:relative;
+    left:6px;
+    padding:0px;
+    width:70%;
+    border:1px solid #ccc;
+    height:49px;
+    border-radius:10px;
+}
+.firstmessage{
+    position:fixed;
+    bottom:90px;
+    right:25px;
+    border:1px solid #fff;
+    border-radius:10px;
+    background-color:#f1593a;
+    z-index:999;
+}
+.firstmessage p{
+    text-align:center;
+    padding:5px 10px;
+    font-weight:300;
+    color:#fff;
+}
+.firstmessage .minus{
+    position: absolute;
+    top: -26px;
+    right: 7px;
+    color: #fff;
+    border: 1px solid #f1593a;
+    padding: 0px 10px;
+    height: 25px;
+    color:#f1593a;
+    border-radius:100%;
+}
+
+@media only screen and (max-width:550px){
+    /*.fixed-plugin .fixed-plugin-button {*/
+    /*    bottom:75px  !important;*/
+    /*}*/
+    /*.fixed-plugin .fixed-plugin-button1 {*/
+    /*    bottom: 75px !important;*/
+    /*}*/
+    /*.frame{*/
+    /*    display:flex !important;*/
+    /*}*/
+    /*.fixed-plugin .fixed-plugin-button3 {*/
+    /*  bottom: 75px !important;*/
+    /*}*/
+}
+
+.frame {
+  position:fixed;
+  bottom:0;
+  width: 100%;
+  z-index:999;
+  /*height: 620px;*/
+  /*background: rgb(247, 247, 247);*/
+  border-radius: 13px;
+  display: none;
+  align-items: flex-end;
+  /*overflow: hidden;*/
+  /*box-shadow: 0 0 90px 7px #ffbca5;*/
+}
+
+.icon{
+    width: 82.5px;
+    height:1em;
+}
+.bar {
+  width: 100%;
+  height: 70px;
+  background: #fff;
+  box-shadow: 0 10px 40px rgba(51, 51, 51, 0.4);
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  justify-content: space-between;
+  flex-direction: row;
+  padding: 0 15px;
+}
+
+.els-wrap {
+  display: block;
+  align-items: center;
+  width: 51px;
+  background-size: 1200px;
+  background-position: 100% 50%;
+  color: rgb(51, 51, 51);
+  padding: 0 9px;
+  border-radius: 100px;
+  overflow: hidden;
+  text-decoration: none;
+  cursor: pointer;
+  transition: width 200ms, padding 200ms, border-radius 300ms, background-position 900ms;
+  transition-timing-function: ease-in-out;
+}
+.els-wrap1 {
+  display: block;
+  align-items: center;
+  width: 56px;
+  background-size: 1200px;
+  background-position: 100% 50%;
+  color: rgb(51, 51, 51);
+  padding: 0px 10px;
+  border-radius: 100%;
+  overflow: hidden;
+  text-decoration: none;
+  cursor: pointer;
+  transition: width 200ms, padding 200ms, border-radius 300ms, background-position 900ms;
+  transition-timing-function: ease-in-out;
+}
+.els-wrap:hover {
+  background-position: 0 50%;
+  padding: 3px 13px;
+  border-radius: 50px;
+}
+.els-wrap:hover .icon {
+  font-size: 28px;
+  /*margin-right: 10px;*/
+  margin-bottom:10px;
+}
+.els-wrap:hover .label {
+  opacity: 1;
+}
+.els-wrap:focus {
+  background-position: 0 50%;
+  padding: 3px 13px;
+  border-radius: 50px;
+}
+.els-wrap:focus .icon {
+  font-size: 28px;
+  /*margin-right: 10px;*/
+  margin-bottom:10px;
+}
+.els-wrap:focus .label {
+  opacity: 1;
+}
+.els-wrap .icon {
+  font-size: 25px;
+  margin-right: 25px;
+  position: relative;
+  z-index: 2;
+  transition: font-size 250ms, margin-bottom 200ms;
+  transition-timing-function: ease-out;
+}
+.els-wrap1 .icon {
+  font-size: 25px;
+  /*margin-right: 25px;*/
+  position: relative;
+  z-index: 2;
+  transition: font-size 250ms, margin-bottom 200ms;
+  transition-timing-function: ease-out;
+}
+.els-wrap .label {
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  opacity: 0;
+  position: relative;
+  z-index: 2;
+  font-size: 11px;
+  transition: opacity 400ms;
+  transition-delay: 130ms;
+  transition-timing-function: ease-out;
+}
+
+/*.el-0 {*/
+/*  background-image: radial-gradient(circle at right, #fff, rgb(216,216,255));*/
+/*}*/
+
+/*.el-1 {*/
+/*  background-image: radial-gradient(circle at right, #fff, rgb(216,216,255));*/
+/*}*/
+
+/*.el-2 {*/
+/*  background-image: radial-gradient(circle at right, #fff, rgb(255,216,216));*/
+/*}*/
+
+/*.el-3 {*/
+/*  background-image: radial-gradient(circle at right, #fff, rgb(255,236,216));*/
+/*}*/
+
+/*.el-4 {*/
+/*  background-image: radial-gradient(circle at right, #fff, rgb(255,255,216));*/
+/*}*/
+
+/*.el-0:hover {*/
+/*  width: 82.5px;*/
+/*}*/
+
+/*.el-0:focus {*/
+/*  width: 82.5px;*/
+/*}*/
+
+/*.el-1:hover {*/
+/*  width: 82.5px;*/
+/*}*/
+
+/*.el-1:focus {*/
+/*  width: 82.5px;*/
+/*}*/
+
+/*.el-2:hover {*/
+/*  width: 72.6px;*/
+/*}*/
+
+/*.el-2:focus {*/
+/*  width: 72.6px;*/
+/*}*/
+
+/*.el-3:hover {*/
+/*  width: 66px;*/
+/*}*/
+
+/*.el-3:focus {*/
+/*  width: 66px;*/
+/*}*/
+
+/*.el-4:hover {*/
+/*  width: 87.45px;*/
+/*}*/
+
+/*.el-4:focus {*/
+/*  width: 87.45px;*/
+/*# sourceMappingURL=style.css.map */
+

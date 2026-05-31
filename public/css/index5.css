@@ -1,0 +1,111 @@
+body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+#headertop .leftdiv {
+  background-color: darkgoldenrod;
+  padding-left: 0px;
+  padding-right: 0px;
+}
+#headertop .leftdiv .topblank {
+  height: 50px;
+  background-color: #fff;
+}
+#headertop .leftdiv .invoicetext h1 {
+  font-size: 80px;
+  margin-left: 40px;
+  color: #fff;
+}
+#headertop .rightdiv {
+  background-color: darkslategrey;
+  display: flex;
+  justify-content: end;
+  align-items: center;
+  padding-right: 50px;
+}
+
+#headermiddle {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  height: 5px;
+  background-color: darkgoldenrod;
+}
+
+#invoiceto .leftdiv h4 {
+  margin-left: 40px;
+}
+#invoiceto .leftdiv .name {
+  color: darkgoldenrod;
+}
+#invoiceto .leftdiv p {
+  margin-left: 40px;
+  line-height: 10px;
+}
+#invoiceto .rightdiv {
+  text-align: end;
+  padding-right: 50px;
+}
+
+#table .table {
+  width: 95%;
+  margin: 0 auto;
+}
+#table .table thead {
+  background-color: darkslategrey;
+}
+#table .table thead th {
+  color: #fff;
+}
+
+#bottomtop .leftdiv {
+  margin-top: 30px;
+}
+#bottomtop .leftdiv h5 {
+  margin-left: 40px;
+}
+#bottomtop .leftdiv p {
+  width: 60%;
+  margin-left: 40px;
+}
+#bottomtop .leftdiv .table {
+  margin-left: 40px;
+}
+#bottomtop .leftdiv .table tr {
+  border: 0px;
+}
+#bottomtop .leftdiv .table tr td {
+  border: 0px;
+}
+#bottomtop .rightdiv {
+  margin-top: 30px;
+}
+#bottomtop .rightdiv .table tr {
+  border: 0px;
+}
+#bottomtop .rightdiv .table tr td {
+  border: 0px;
+  padding: 3px 10px;
+}
+#bottomtop .rightdiv .table .hr {
+  background-color: darkslategrey;
+  color: #fff;
+}
+#bottomtop .rightdiv .authorizesign {
+  margin-top: 100px;
+  width: 50%;
+  margin-left: auto;
+  margin-right: auto;
+}
+#bottomtop .rightdiv .authorizesign .hrss {
+  height: 5px;
+  background-color: black;
+}
+#bottomtop .rightdiv .authorizesign h5 {
+  text-align: center;
+}
+
+#footer {
+  text-align: center;
+}/*# sourceMappingURL=style.css.map */

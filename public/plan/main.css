@@ -1,0 +1,118 @@
+:root {
+  --clr: #262B41;
+}
+
+body {
+  background-color: var(--clr);
+  margin: 0;
+  padding: 0;
+  font-family:'Segoe UI',
+  Tahoma,
+  Geneva,
+  Verdana,
+  sans-serif
+}
+
+.price_table {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: 1fr;
+  grid-column-gap: 0px;
+  grid-row-gap: 0px;
+  border: 1px solid white;
+  margin: 20px;
+  border-radius: 15px;
+  -webkit-border-radius: 15px;
+  -moz-border-radius: 15px;
+  -ms-border-radius: 15px;
+  -o-border-radius: 15px;
+  box-shadow: 2px 2px gray;
+}
+
+.card {
+  position: relative;
+  height: 550px;
+  width: 350px;
+  border-radius: 29px;
+  border: 10px solid var(--clr);
+  outline: 1px solid black;
+  margin: 30px;
+  /* clip-path: polygon(0% 0%, 100% 0%, 100% 75%, 78% 76%, 71% 100%, 47% 100%, 0 99%); */
+}
+.card .title{
+  text-align: center;
+}
+.card .title{
+  color: white;
+  font-size: 30px;
+  font-weight: bold;
+ 
+}
+.card .list {
+}
+.card .list ul{
+
+}
+.card .list ul li{
+  list-style: none;
+    display: flex;
+    justify-content: start;
+    align-items: center;
+    gap: 10px;
+}
+.card .list ul li p{
+  color:white;
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 1px;
+  margin: 8px 0;
+  line-height: 18px;
+
+}
+.card .btn {
+  position: absolute;
+  bottom: 5px;
+  right: 6px;
+  background-color: blueviolet;
+  padding: 10px 20px 10px 40px;
+  border-radius: 100px 10px 10px 10px;
+  outline: 0;
+  border: 0;
+  font-size: 25px;
+  font-weight: 600;
+  color: white;
+  letter-spacing: 0.05em;
+  clip-path: polygon(18% 0, 100% 0%, 100% 100%, 0% 100%);
+  -webkit-border-radius: 100px 10px 10px 10px;
+  -moz-border-radius: 100px 10px 10px 10px;
+  -ms-border-radius: 100px 10px 10px 10px;
+  -o-border-radius: 100px 10px 10px 10px;
+}
+
+.card .price{
+  display: flex;
+  flex-direction: column;
+  margin: 0 35px;
+}
+.card .price h2{
+  color: white;
+  font-weight: bold;
+  font-size: 50px;
+  margin: 0;
+}
+.card .price h3{
+  margin: 0;
+  color: #f0e3e3;
+}
+
+
+/*  GO FULL WIDTH BELOW 480 PIXELS */
+@media only screen and (max-width: 480px) {
+.price_table {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  grid-template-rows: 1fr;
+  grid-column-gap: 0px;
+  grid-row-gap: 0px;
+}
+}

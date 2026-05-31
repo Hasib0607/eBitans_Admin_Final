@@ -1,0 +1,36 @@
+* {
+  margin: 0;
+  padding: 0;
+}
+
+p {
+  margin-bottom: 0px !important;
+}
+
+#firstrow {
+  background-color: #000000;
+  color: #fff;
+  text-align: left !important;
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+
+.table1 {
+  border: 0px;
+}
+
+.table1 tr th, .table1 tr td {
+  border: 0px;
+  text-align: center;
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+
+.table1 tr th {
+  font-size: 25px;
+}
+
+.authorizesign {
+  padding-top: 70px;
+  padding-bottom: 40px;
+}/*# sourceMappingURL=style.css.map */

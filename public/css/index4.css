@@ -1,0 +1,83 @@
+body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+#headertop {
+  height: 30px;
+  background-color: black;
+}
+
+#headermiddle .leftdiv h1 {
+  font-size: 100px;
+  margin-left: 40px;
+}
+#headermiddle .leftdiv h4 {
+  margin-left: 40px;
+  font-size: 20px;
+  padding-top: 20px;
+  font-weight: 700;
+}
+#headermiddle .leftdiv p {
+  margin-left: 40px;
+  font-size: 15px;
+  line-height: 10px;
+}
+#headermiddle .rightdiv {
+  padding-top: 60px;
+}
+#headermiddle .rightdiv h4 {
+  font-size: 20px;
+  text-align: end;
+  margin-right: 40px;
+}
+#headermiddle .rightdiv h4 .invoiceno {
+  font-size: 30px;
+  background-color: aliceblue;
+}
+
+#table .table {
+  width: 95%;
+  margin: 0 auto;
+}
+#table .table thead {
+  background-color: black;
+}
+#table .table thead tr th {
+  color: #fff;
+  border-right: 1px solid #fff;
+  text-align: center;
+}
+#table .table tbody tr {
+  border: 0px;
+}
+#table .table tbody tr td {
+  border-bottom: 0px;
+  border-right: 1px solid gray;
+  border-left: 1px solid gray;
+  text-align: center;
+  padding: 10px 0px;
+}
+#table .table tfoot {
+  background-color: black;
+}
+#table .table tfoot tr th {
+  color: #fff;
+  text-align: center;
+}
+#table .table tfoot .footlast {
+  background-color: #fff !important;
+}
+#table .table tfoot .footlast th {
+  color: black;
+}
+
+#footer {
+  height: 30px;
+  background-color: black;
+}
+#footer h4 {
+  color: #fff;
+  text-align: center;
+}/*# sourceMappingURL=style.css.map */

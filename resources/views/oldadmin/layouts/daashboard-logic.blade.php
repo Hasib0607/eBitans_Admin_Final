@@ -1,0 +1,157 @@
+<?php
+if(Auth::user()->type=='admin'){
+    $customer=DB::table('customers')->where('uid',Auth::user()->id)->first();
+    $store_id=$customer->active_store;
+}elseif(Auth::user()->type=='staff'){
+    $staff=DB::table('staff')->where('uid',Auth::user()->id)->first();
+    $store_id=$staff->store_id;
+    $role=DB::table("roles")->where('id',$staff->role_id)->first();
+    if(isset($role)){
+        $permission=explode(',',$role->permission);
+            foreach($permission as $key=>$pr){
+                if($pr=='branch'){
+                    $branch=1;
+                }elseif($pr=='product'){
+                    $product=1;
+                }elseif($pr=='category'){
+                    $category=1;
+                }elseif($pr=='subcategory'){
+                    $subcategory=1;
+                }elseif($pr=='brand'){
+                    $brand=1;
+                }elseif($pr=='attribute'){
+                    $attribute=1;
+                }elseif($pr=='supplier'){
+                    $supplier=1;
+                }
+                elseif($pr=='collection'){
+                    $collection=1;
+                }elseif($pr=='global_tab'){
+                    $global_tab=1;
+                }elseif($pr=='coupon'){
+                    $coupon=1;
+                }elseif($pr=='campaign'){
+                    $campaign=1;
+                }elseif($pr=='offer'){
+                    $offer=1;
+                }elseif($pr=='slider'){
+                    $slider=1;
+                }elseif($pr=='banner'){
+                    $banner=1;
+                }elseif($pr=='layouts'){
+                    $layouts=1;
+                }elseif($pr=='template'){
+                    $template=1;
+                }elseif($pr=='header'){
+                    $header=1;
+                }elseif($pr=='homepage'){
+                    $homepage=1;
+                }elseif($pr=='footer'){
+                    $footer=1;
+                }elseif($pr=='mobilemenu'){
+                    $mobilemenu=1;
+                }elseif($pr=='product_display'){
+                    $product_display=1;
+                }elseif($pr=='product_grid'){
+                    $product_grid=1;
+                }elseif($pr=='shop_page'){
+                    $shop_page=1;
+                }elseif($pr=='pages'){
+                    $pages=1;
+                }elseif($pr=='customer'){
+                    $customer=1;
+                }elseif($pr=='staff'){
+                    $staff=1;
+                }
+                elseif($pr=='invoice'){
+                    $invoice=1;
+                }elseif($pr=='setting'){
+                    $setting=1;
+                }elseif($pr=='role_permission'){
+                    $role_permission=1;
+                }elseif($pr=='pos'){
+                    $pos=1;
+                }elseif($pr=='testimonials'){
+                    $tt=1;
+                }elseif($pr=='theme_customize'){
+                    $theme_customize=1;
+                }elseif($pr=='activity_log'){
+                    $activity_log=1;
+                }elseif($pr=='inventory'){
+                    $inventory=1;
+                }else{
+                    
+                }
+            }
+    }
+}else{
+    $store_id=0;
+}
+if($store_id!=0){
+$store=DB::table('stores')->where('id',$store_id)->first();
+if($store->expiry_date <= Carbon\Carbon::now()){
+$exp=1;
+}else{
+  $exp=0;
+}
+}
+?>
+@if(Auth::user()->type=='staff')
+<?php
+$stafff=DB::table('staff')->where('uid',Auth::user()->id)->first();
+if(isset($stafff)){
+    if(isset($stafff->pos)){
+        $staff_pos=1;
+    }else{
+        $staff_pos=0;
+    }
+}else{
+    $staff_pos=0;
+}
+?>
+@endif
+<?php
+if(Auth::user()->type=='superstaff'){
+    $superstaff=DB::table('superstaffs')->where('uid',Auth::user()->id)->first();
+    $superrole=DB::table('superroles')->where('id',$superstaff->role_id)->first();
+        $permissionss=explode(',',$superrole->permission);
+        foreach($permissionss as $key=>$prs){
+            if($prs=='branch_delete_request'){
+                $branch_delete_request=1;
+            }elseif($prs=='customer'){
+                $customers=1;
+            }elseif($prs=='domain'){
+                $domain=1;
+            }elseif($prs=='domain_request'){
+                $domain_request=1;
+            }elseif($prs=='design'){
+                $design=1;
+            }elseif($prs=='template'){
+                $templatess=1;
+            }elseif($prs=='order'){
+                $order=1;
+            }
+            elseif($prs=='reports'){
+                $reports=1;
+            }elseif($prs=='review'){
+                $review=1;
+            }elseif($prs=='staff'){
+                $staff=1;
+            }elseif($prs=='role_and_permission'){
+                $role_and_permission=1;
+            }elseif($prs=='clients'){
+                $clients=1;
+            }elseif($prs=='plan_order'){
+                $plan_order=1;
+            }elseif($prs=='plans'){
+                $plans=1;
+            }elseif($prs=='notification'){
+                $notification=1;
+            }elseif($prs=='message'){
+                $messages=1;
+            }else{
+                
+            }
+        }
+}
+?>
