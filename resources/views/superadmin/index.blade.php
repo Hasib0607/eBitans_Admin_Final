@@ -187,6 +187,11 @@
                         <p id="backupProgressText" class="backup-progress-text mb-0">
                             Preparing...
                         </p>
+                        <div class="mt-4 text-end d-none" id="backupProgressActions">
+                            <button type="button" class="btn btn-dark mb-0" id="backupProgressDone">
+                                Done
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -534,6 +539,8 @@
             const progressBar = document.getElementById('backupProgressBar');
             const progressPercent = document.getElementById('backupProgressPercent');
             const progressText = document.getElementById('backupProgressText');
+            const progressActions = document.getElementById('backupProgressActions');
+            const progressDone = document.getElementById('backupProgressDone');
             const driveRestoreDate = document.getElementById('driveRestoreDate');
             const driveRestoreDateHelp = document.getElementById('driveRestoreDateHelp');
 
@@ -541,12 +548,46 @@
                 if (!progressModal) return;
 
                 modalTitle.innerText = title;
-                progressBar.classList.remove('bg-danger');
+                progressBar.classList.remove('bg-danger', 'bg-success');
                 progressBar.classList.add('bg-success', 'progress-bar-animated');
                 progressBar.style.width = '5%';
                 progressPercent.innerText = '5%';
                 progressText.innerText = startText;
+                if (progressActions) {
+                    progressActions.classList.add('d-none');
+                }
                 progressModal.show();
+            }
+
+            function holdFinalProgressStatus(status, message) {
+                progressBar.classList.remove('progress-bar-animated');
+
+                if (status === 'failed') {
+                    progressBar.classList.remove('bg-success');
+                    progressBar.classList.add('bg-danger');
+                } else {
+                    progressBar.classList.remove('bg-danger');
+                    progressBar.classList.add('bg-success');
+                }
+
+                if (progressActions) {
+                    progressActions.classList.remove('d-none');
+                }
+
+                if (progressDone) {
+                    progressDone.innerText = status === 'failed' ? 'OK' : 'Done';
+                    progressDone.focus();
+                }
+
+                if (message) {
+                    progressText.innerText = message;
+                }
+            }
+
+            if (progressDone) {
+                progressDone.addEventListener('click', function () {
+                    location.reload();
+                });
             }
 
             function pollBackupStatus() {
@@ -567,22 +608,13 @@
                             progressText.innerText = message;
 
                             if (status === 'completed') {
-                                progressBar.classList.remove('progress-bar-animated');
                                 clearInterval(interval);
-
-                                setTimeout(function () {
-                                    location.reload();
-                                }, 1200);
+                                holdFinalProgressStatus(status, message);
                             }
 
                             if (status === 'failed') {
-                                progressBar.classList.remove('progress-bar-animated', 'bg-success');
-                                progressBar.classList.add('bg-danger');
                                 clearInterval(interval);
-
-                                setTimeout(function () {
-                                    location.reload();
-                                }, 1500);
+                                holdFinalProgressStatus(status, message);
                             }
                         })
                         .catch(function (error) {
