@@ -6,6 +6,7 @@ use Google\Service\Drive\DriveFile;
 use Illuminate\Support\Facades\File;
 use Google\Client as GoogleClient;
 use Google\Service\Drive as GoogleDrive;
+use Symfony\Component\Process\Process;
 
 class BackupManager
 {
@@ -465,14 +466,14 @@ class BackupManager
         }
     }
 
-    public function restoreDatabaseFromFile(string $filePath): ?string
+    public function restoreDatabaseFromFile(string $filePath, ?callable $progressCallback = null): ?string
     {
         if (!file_exists($filePath) || filesize($filePath) <= 0) {
             throw new \Exception('Database restore failed: SQL backup file is missing or empty.');
         }
 
         $command = sprintf(
-            'mysql --host=%s --port=%s --protocol=TCP --user=%s --password=%s --default-character-set=utf8mb4 --binary-mode=1 --force %s < %s 2>&1',
+            'mysql --host=%s --port=%s --protocol=TCP --user=%s --password=%s --default-character-set=utf8mb4 --binary-mode=1 --force %s < %s',
             escapeshellarg(env('DB_HOST', '127.0.0.1')),
             escapeshellarg(env('DB_PORT', '3306')),
             escapeshellarg(env('DB_USERNAME')),
@@ -481,15 +482,49 @@ class BackupManager
             escapeshellarg($filePath)
         );
 
-        exec($command, $output, $resultCode);
+        $process = Process::fromShellCommandline($command);
+        $process->setTimeout(null);
+        $process->setIdleTimeout(null);
+        $process->start();
 
-        if ($resultCode !== 0) {
-            throw new \Exception('Database restore failed: ' . $this->commandOutputMessage($output));
+        $output = '';
+        $startedAt = time();
+        $lastProgressAt = 0;
+
+        while ($process->isRunning()) {
+            $output = $this->appendCommandOutput($output, $process->getIncrementalOutput());
+            $output = $this->appendCommandOutput($output, $process->getIncrementalErrorOutput());
+
+            $elapsedSeconds = time() - $startedAt;
+
+            if ($progressCallback && ($elapsedSeconds - $lastProgressAt) >= 5) {
+                $lastProgressAt = $elapsedSeconds;
+                $progressCallback($elapsedSeconds);
+            }
+
+            usleep(500000);
         }
 
-        $message = trim(implode("\n", array_filter($output)));
+        $process->wait();
+        $output = $this->appendCommandOutput($output, $process->getIncrementalOutput());
+        $output = $this->appendCommandOutput($output, $process->getIncrementalErrorOutput());
+
+        if (!$process->isSuccessful()) {
+            throw new \Exception('Database restore failed: ' . $this->commandOutputMessage([$output]));
+        }
+
+        $message = trim($output);
 
         return $message === '' ? null : 'Database restored with warnings: ' . mb_substr($message, 0, 600);
+    }
+
+    protected function appendCommandOutput(string $current, string $chunk): string
+    {
+        if ($chunk === '') {
+            return $current;
+        }
+
+        return mb_substr($current . $chunk, -4000);
     }
 
     protected function commandOutputMessage(array $output): string

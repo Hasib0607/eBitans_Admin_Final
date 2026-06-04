@@ -89,7 +89,21 @@ class RunSelectedDriveRestore extends Command
                 $restoreMessage = null;
 
                 if ($type === 'database') {
-                    $restoreMessage = $manager->restoreDatabaseFromFile($targetPath);
+                    $restoreMessage = $manager->restoreDatabaseFromFile(
+                        $targetPath,
+                        function (int $elapsedSeconds) use ($manager, $restorePhaseStart, $restorePhaseEnd) {
+                            $progressRange = max($restorePhaseEnd - $restorePhaseStart, 1);
+                            $elapsedProgress = min($progressRange - 1, (int) floor($elapsedSeconds / 30));
+                            $elapsedText = gmdate($elapsedSeconds >= 3600 ? 'H\h i\m s\s' : 'i\m s\s', $elapsedSeconds);
+
+                            $manager->setStatus(
+                                'restore-drive',
+                                'running',
+                                $restorePhaseStart + max(0, $elapsedProgress),
+                                'Restoring Database backup... ' . $elapsedText . ' elapsed'
+                            );
+                        }
+                    );
                 } else {
                     $manager->restoreZipToBasePath($targetPath);
                 }
