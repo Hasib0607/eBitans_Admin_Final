@@ -124,7 +124,9 @@ class BackupManager
         $filePath = $backupDir . DIRECTORY_SEPARATOR . $fileName;
 
         $command = sprintf(
-            'mysqldump --user=%s --password=%s %s > %s 2>&1',
+            'mysqldump --host=%s --port=%s --protocol=TCP --user=%s --password=%s --single-transaction --quick --routines --triggers --events --default-character-set=utf8mb4 %s > %s 2>&1',
+            escapeshellarg(env('DB_HOST', '127.0.0.1')),
+            escapeshellarg(env('DB_PORT', '3306')),
             escapeshellarg(env('DB_USERNAME')),
             escapeshellarg(env('DB_PASSWORD')),
             escapeshellarg(env('DB_DATABASE')),
@@ -134,7 +136,7 @@ class BackupManager
         exec($command, $output, $resultCode);
 
         if ($resultCode !== 0 || !file_exists($filePath) || filesize($filePath) <= 0) {
-            throw new \Exception('Database backup failed.');
+            throw new \Exception('Database backup failed: ' . $this->commandOutputMessage($output));
         }
     }
 
@@ -463,10 +465,16 @@ class BackupManager
         }
     }
 
-    public function restoreDatabaseFromFile(string $filePath): void
+    public function restoreDatabaseFromFile(string $filePath): ?string
     {
+        if (!file_exists($filePath) || filesize($filePath) <= 0) {
+            throw new \Exception('Database restore failed: SQL backup file is missing or empty.');
+        }
+
         $command = sprintf(
-            'mysql --user=%s --password=%s %s < %s 2>&1',
+            'mysql --host=%s --port=%s --protocol=TCP --user=%s --password=%s --default-character-set=utf8mb4 --binary-mode=1 --force %s < %s 2>&1',
+            escapeshellarg(env('DB_HOST', '127.0.0.1')),
+            escapeshellarg(env('DB_PORT', '3306')),
             escapeshellarg(env('DB_USERNAME')),
             escapeshellarg(env('DB_PASSWORD')),
             escapeshellarg(env('DB_DATABASE')),
@@ -476,8 +484,23 @@ class BackupManager
         exec($command, $output, $resultCode);
 
         if ($resultCode !== 0) {
-            throw new \Exception('Database restore failed.');
+            throw new \Exception('Database restore failed: ' . $this->commandOutputMessage($output));
         }
+
+        $message = trim(implode("\n", array_filter($output)));
+
+        return $message === '' ? null : 'Database restored with warnings: ' . mb_substr($message, 0, 600);
+    }
+
+    protected function commandOutputMessage(array $output): string
+    {
+        $message = trim(implode("\n", array_filter($output)));
+
+        if ($message === '') {
+            return 'No command output returned. Please verify MySQL client, DB credentials, and database permissions.';
+        }
+
+        return mb_substr($message, 0, 1000);
     }
 
     public function restoreZipToBasePath(string $filePath): void

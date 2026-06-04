@@ -86,16 +86,19 @@ class RunSelectedDriveRestore extends Command
                     'Restoring ' . ucfirst($type) . ' backup...'
                 );
 
+                $restoreMessage = null;
+
                 if ($type === 'database') {
-                    $manager->restoreDatabaseFromFile($targetPath);
+                    $restoreMessage = $manager->restoreDatabaseFromFile($targetPath);
                 } else {
                     $manager->restoreZipToBasePath($targetPath);
                 }
+
                 $manager->setStatus(
                     'restore-drive',
                     'running',
                     $restorePhaseEnd,
-                    ucfirst($type) . ' backup restored successfully.'
+                    $restoreMessage ?: ucfirst($type) . ' backup restored successfully.'
                 );
                 $completedPhases++;
             }
