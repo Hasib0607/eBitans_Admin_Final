@@ -286,7 +286,7 @@
                                                     <input type="text" name="search" id="productFilter"
                                                            class="form-control" placeholder="Search">
                                                 </div>
-                                                <button class="btn btn-primary" onclick="addproduct()">Add Product
+                                                <button type="button" class="btn btn-primary" onclick="addproduct(event)">Add Product
                                                 </button>
                                             </div>
                                         </div>
@@ -372,7 +372,11 @@
 
 @push('scripts')
     <script>
-        function addproduct() {
+        function addproduct(event) {
+            if (event) {
+                event.preventDefault();
+            }
+
             $('#exampleModalScrollable1').modal('toggle');
         }
 

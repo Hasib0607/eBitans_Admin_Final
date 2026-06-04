@@ -14,6 +14,11 @@
         window.Laravel = {
             appUrl: '{{ env('APP_URL') }}',
         };
+        window.PosBranch = {
+            token: @json($branch_token ?? null),
+            id: @json($branch_id ?? null),
+        };
+        localStorage.setItem('bid', @json($branch_id));
     </script>
 </head>
 
@@ -21,32 +26,31 @@
 <div id="app">
     <my-component></my-component>
 </div>
-<script src="{{ asset('js/app.js') }}" type="text/javascript"></script>
+<script src="{{ asset('js/app.js') }}?v={{ file_exists(public_path('js/app.js')) ? filemtime(public_path('js/app.js')) : time() }}" type="text/javascript"></script>
 <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var header = document.getElementById("topheader");
+        var header1 = document.getElementById("imgnone");
+        var header2 = document.getElementById("mt3");
 
-    localStorage.setItem('bid',<?php echo $branch_id; ?>);
-    window.onscroll = function () {
-        myFunction()
-    };
-
-    var header = document.getElementById("topheader");
-    var header1 = document.getElementById("imgnone");
-    var header2 = document.getElementById("mt3");
-    var sticky = header.offsetTop;
-    var sticky = header1.offsetTop;
-    var sticky2 = header2.offsetTop;
-
-    function myFunction() {
-        if (window.pageYOffset > sticky) {
-            header.classList.add("fixed");
-            header1.classList.add("d-none");
-            header2.classList.add("mt-3");
-        } else {
-            header.classList.remove("fixed");
-            header2.classList.remove("mt-3");
-            header1.classList.remove("d-none");
+        if (!header || !header1 || !header2) {
+            return;
         }
-    }
+
+        var sticky = header.offsetTop;
+
+        window.onscroll = function () {
+            if (window.pageYOffset > sticky) {
+                header.classList.add("fixed");
+                header1.classList.add("d-none");
+                header2.classList.add("mt-3");
+            } else {
+                header.classList.remove("fixed");
+                header2.classList.remove("mt-3");
+                header1.classList.remove("d-none");
+            }
+        };
+    });
 </script>
 </body>
 </html>

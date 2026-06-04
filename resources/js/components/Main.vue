@@ -161,7 +161,7 @@
                                  class="ms-1"/>
                             <div class="text-start px-2">
                                 <p class="mb-0">{{ item.name }}</p>
-                                <p class="mb-0">৳{{ item.price }}</p>
+                                <p class="mb-0">৳{{ formatMoney(item.line_total ?? item.sale_price ?? item.price) }}</p>
                             </div>
                             <div></div>
                             <div class="text-center  me-2">
@@ -210,6 +210,12 @@ const truncateText = (text, length = 50) => {
         return text.substring(0, length) + '...';
     }
     return text;
+}
+
+const formatMoney = (value) => {
+    const amount = Number(value || 0);
+
+    return Number.isInteger(amount) ? amount : amount.toFixed(2);
 }
 
 store.createdss();
@@ -364,4 +370,3 @@ input[type=number]::-webkit-outer-spin-button {
     width: 250px;
 }
 </style>
-

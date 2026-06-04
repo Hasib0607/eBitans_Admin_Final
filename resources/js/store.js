@@ -6,8 +6,19 @@ import {debounce} from 'lodash';
 
 const appUrl = window?.Laravel?.appUrl || '';
 
-const pathID = window.location.href.replace(`${appUrl}/branch/`, "").replace("/pos", "");
-const data = {id: pathID};
+const getBranchTokenFromUrl = () => {
+    const match = window.location.pathname.match(/\/branch\/(.+)\/pos\/?$/);
+
+    return match ? decodeURIComponent(match[1]) : '';
+};
+
+const pathID = window?.PosBranch?.token || getBranchTokenFromUrl();
+const branchId = window?.PosBranch?.id || localStorage.getItem('bid');
+if (branchId) {
+    localStorage.setItem('bid', branchId);
+}
+const productBranchRef = pathID || branchId;
+const data = {id: productBranchRef};
 
 const old = localStorage.getItem('cartsessionid');
 if (old == null) {
@@ -38,6 +49,7 @@ export const store = reactive({
     customeError: "",
     orderError: "",
     paymentmethod: 'cod',
+    onlinepaymentmethod: 'bkash',
     transactionid: null,
     extradiscount: 0,
     show: false,
@@ -86,10 +98,10 @@ export const store = reactive({
     },
     createdss() {
         axios.post(appUrl + '/api/v1/getproducts', data).then((response) => {
-            this.products = response.data.data
+            this.products = Array.isArray(response.data.data) ? response.data.data : []
         })
         axios.post(appUrl + '/api/v1/getcatpos', data).then((response) => {
-            this.posts = response.data.data
+            this.posts = Array.isArray(response.data.data) ? response.data.data : []
         })
 
         this.getCart();
@@ -159,18 +171,22 @@ export const store = reactive({
             listss[indexss].setAttribute("style", "display:none");
         }
         const name = event.target.value
-        const data = {name: name, id: pathID}
+        const data = {name: name, id: productBranchRef}
         axios.post(appUrl + '/api/v1/getsearchproduct', data).then((response) => {
-            this.products = response.data.data
+            const products = Array.isArray(response.data.data) ? response.data.data : []
+            this.products = products
             if (name == '') {
 
             } else {
+                if (!products.length) {
+                    return;
+                }
 
-                if (response.data.data[0].vr == 1) {
-                    this.openmodal(`exampleModals` + response.data.data[0].id)
+                if (products[0].vr == 1) {
+                    this.openmodal(`exampleModals` + products[0].id)
                 } else {
                     if (this.setcartone) {
-                        this.addtocart(response.data.data[0].id);
+                        this.addtocart(products[0].id);
                         this.setcartone = false
                     } else {
                         this.setcartone = true
@@ -182,10 +198,10 @@ export const store = reactive({
     },
     searchbyproductbarcode(event) {
         const name = event.target.value
-        const data = {name: name, id: pathID}
+        const data = {name: name, id: productBranchRef}
         axios.post(appUrl + '/api/v1/getsearchproductbarcode', data).then((response) => {
             // console.log(response.data.data);
-            this.products = response.data.data
+            this.products = Array.isArray(response.data.data) ? response.data.data : []
         })
 
     },
@@ -200,7 +216,7 @@ export const store = reactive({
     allproduct() {
         axios.post(appUrl + '/api/v1/getproducts', data).then((response) => {
             // console.log(response.data.data)
-            this.products = response.data.data
+            this.products = Array.isArray(response.data.data) ? response.data.data : []
         })
     },
     addtocart(id) {
@@ -262,11 +278,11 @@ export const store = reactive({
         const data1 = {session: sessions, bid: bid}
         axios.post(appUrl + '/api/v1/getcarts', data1).then((response) => {
             this.items = response.data.data;
-            this.subtotal = parseFloat(response.data.subtotal);
-            this.total = parseFloat(response.data.total);
-            this.discount = parseFloat(response.data.discount);
-            this.tax = parseFloat(response.data.tax);
-            const grandTotal = (parseFloat(response.data.subtotal) + parseFloat(response.data.tax)) - parseFloat(response.data.discount);
+            this.subtotal = parseFloat(response.data.subtotal) || 0;
+            this.total = parseFloat(response.data.total) || 0;
+            this.discount = parseFloat(response.data.discount) || 0;
+            this.tax = parseFloat(response.data.tax) || 0;
+            const grandTotal = this.total;
             this.grandTotal = grandTotal;
             this.paid = grandTotal;
             this.due = 0;
@@ -330,7 +346,7 @@ export const store = reactive({
         const bid = localStorage.getItem('bid');
         const data2 = {id: id, bid: bid}
         axios.post(appUrl + '/api/v1/getcatproduct', data2).then((response) => {
-            this.products = response.data.data
+            this.products = Array.isArray(response.data.data) ? response.data.data : []
         });
     },
     placeorderss() {
@@ -368,7 +384,7 @@ export const store = reactive({
             items: this.items,
             subtotal: this.subtotal,
             discount: this.discount,
-            total: this.total,
+            total: this.grandTotal,
             bid: bid,
             payment_type: 'cod',
             session: localStorage.getItem('cartsessionid'),
@@ -377,6 +393,7 @@ export const store = reactive({
             paid: this.paid,
             due: this.due,
             paymentmethod: this.paymentmethod,
+            onlinepaymentmethod: this.onlinepaymentmethod,
             transactionid: this.transactionid,
             extradiscount: this.extradiscount,
         }
@@ -399,7 +416,7 @@ export const store = reactive({
             items: this.items,
             subtotal: this.subtotal,
             discount: this.discount,
-            total: this.total,
+            total: this.grandTotal,
             bid: bid,
             payment_type: 'cod',
             session: localStorage.getItem('cartsessionid'),
@@ -408,6 +425,7 @@ export const store = reactive({
             paid: this.paid,
             due: this.due,
             paymentmethod: this.paymentmethod,
+            onlinepaymentmethod: this.onlinepaymentmethod,
             transactionid: this.transactionid,
             extradiscount: this.extradiscount,
         }
@@ -439,6 +457,7 @@ export const store = reactive({
         this.due = 0
         this.extradiscount = 0
         this.paymentmethod = 'cod',
+            this.onlinepaymentmethod = 'bkash',
             this.transactionid = null,
             localStorage.removeItem('cartsessionid');
         const random = new Date().valueOf();
@@ -457,6 +476,9 @@ export const store = reactive({
     transactionids(event) {
         const value = event.target.value
         this.transactionid = value
+    },
+    onlinePaymentMethods(event) {
+        this.onlinepaymentmethod = event.target.value
     },
     showholdorder() {
         this.getholforder()

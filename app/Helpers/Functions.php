@@ -1431,7 +1431,7 @@ if (!function_exists('ensure_https_url')) {
 }
 
 if (!function_exists('checkUserFileslimit')) {
-    function checkUserFileslimit(int $totalFiles = 0, int $store_id = null): bool
+    function checkUserFileslimit(int $totalFiles = 0, ?int $store_id = null): bool
     {
         if (is_null($store_id)) {
             $userData = getUserData();

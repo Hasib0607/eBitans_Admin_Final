@@ -560,6 +560,7 @@ class BranchController extends Controller
     public function pos($id)
     {
         // dd(Cart::instance('cart')->content());
+        $encryptedBranchId = $id;
         $id = decrypt($id);
         $branch = Branch::find($id);
 
@@ -585,7 +586,7 @@ class BranchController extends Controller
             }
             $branch_id = $id;
 
-            return view('welcome')->with('products', $products)->with('branch_id', $branch_id);
+            return view('welcome')->with('products', $products)->with('branch_id', $branch_id)->with('branch_token', $encryptedBranchId);
         } else {
             return redirect('/login');
         }

@@ -33,7 +33,7 @@
                                             v-bind:src="'https://admin.ebitans.com/assets/images/product/' + item.image"
                                             width="50" class="ms-1"/></td>
                                         <td>{{ item.name }}</td>
-                                        <td>{{ item.price }}</td>
+                                        <td>৳{{ formatMoney(item.line_total ?? item.sale_price ?? item.price) }}</td>
                                         <td>{{ item.quantity }}</td>
                                     </tr>
                                     </tbody>
@@ -55,6 +55,13 @@
                                 </div>
                             </div>
                             <div v-if="store.paymentmethod=='online'" class="mt-2">
+                                <select :value="store.onlinepaymentmethod" class="form-control mb-2"
+                                        @change="store.onlinePaymentMethods">
+                                    <option value="bkash">Bkash</option>
+                                    <option value="nagad">Nagad</option>
+                                    <option value="rocket">Rocket</option>
+                                    <option value="card">Card</option>
+                                </select>
                                 <input type="text" :value="store.transactionid" placeholder="Transaction Id"
                                        @keyup="store.transactionids" class="form-control"/>
                             </div>
@@ -160,7 +167,7 @@
                                     <tr v-for="(item, index) in store?.invoice?.products" :key="index">
                                         <td>{{ item?.quantity }}x</td>
                                         <td>{{ item?.name }}</td>
-                                        <td>৳{{ item?.price }}</td>
+                                        <td>৳{{ formatMoney(item?.line_total ?? item?.sale_price ?? item?.price) }}</td>
                                     </tr>
                                     </tbody>
                                 </table>
@@ -242,6 +249,12 @@ const getDate = (date) => {
 
 const getTime = (date) => {
     return dayjs(date).format('hh:mm:ss A')
+}
+
+const formatMoney = (value) => {
+    const amount = Number(value || 0);
+
+    return Number.isInteger(amount) ? amount : amount.toFixed(2);
 }
 
 const printInvoice = () => {

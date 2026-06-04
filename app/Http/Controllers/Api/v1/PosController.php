@@ -24,11 +24,50 @@ use Illuminate\Support\Facades\DB;
 
 class PosController extends Controller
 {
+    private function getProductDiscountAmount($product): float
+    {
+        if ($product->discount_type == "fixed") {
+            return (float)$product->promotional_price;
+        }
+
+        if ($product->discount_type == "percent") {
+            return ((float)$product->promotional_price / 100) * (float)$product->regular_price;
+        }
+
+        return 0;
+    }
+
+    private function resolveBranchId($id)
+    {
+        if (is_numeric($id)) {
+            return (int)$id;
+        }
+
+        try {
+            return decrypt($id);
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
+
     public function getcat(Request $request)
     {
-        $bid = decrypt($request->id);
+        $bid = $this->resolveBranchId($request->id);
+        if (!$bid) {
+            return response()->json([
+                'data' => []
+            ]);
+        }
+
         $branch = Branch::find($bid);
+        if (!$branch) {
+            return response()->json([
+                'data' => []
+            ]);
+        }
+
         $category = Category::where('store_id', $branch->store_id)->get();
+        $cat = [];
         if (isset($category) && count($category) > 0) {
             foreach ($category as $key => $cats) {
                 $cat[$key]['id'] = $cats->id;
@@ -47,9 +86,15 @@ class PosController extends Controller
 
     public function getproducts(Request $request)
     {
-        $bid = decrypt($request->id);
-        $branch = Branch::find($bid);
+        $bid = $this->resolveBranchId($request->id);
+        if (!$bid) {
+            return response()->json([
+                'data' => []
+            ]);
+        }
+
         $product = Branchproduct::where('branch_id', $bid)->get();
+        $data = [];
         if (isset($product) && count($product) > 0) {
             foreach ($product as $key => $pps) {
                 $pp = Product::where('id', $pps->product_id)->first();
@@ -74,8 +119,6 @@ class PosController extends Controller
                 }
                 $pp = null;
             }
-        } else {
-            $data = [];
         }
 
         return response()->json([
@@ -90,19 +133,13 @@ class PosController extends Controller
         $id = $request->id;
         $product = Product::find($id);
 //        $product = Product::convertCurrency($store_id)->find($id);
-        if ($product->discount_type == "fixed") {
-            $price = $product->regular_price - $product->promotional_price;
-            $discount = $product->promotional_price;
-        } elseif ($product->discount_type == "percent") {
-            $price = $product->regular_price - ($product->promotional_price / 100) * $product->regular_price;
-            $discount = ($product->promotional_price / 100) * $product->regular_price;
-        } else {
-            $price = $product->regular_price;
-            $discount = "0";
-        }
+        $price = (float)$product->regular_price;
+        $discount = $this->getProductDiscountAmount($product);
         $exist = Cartitem::where('product_id', $id)->where('session_id', $request->session)->first();
         if (isset($exist)) {
             $exist->quantity = $exist->quantity + 1;
+            $exist->price = $price;
+            $exist->discount = $discount;
             $exist->save();
             $catitem = $exist;
         } else {
@@ -143,16 +180,8 @@ class PosController extends Controller
 
         $veriant = Veriant::find($id);
         $product = Product::convertCurrency($store_id)->find($veriant->pid);
-        if ($product->discount_type == "fixed") {
-            $price = $product->regular_price - $product->promotional_price;
-            $discount = $product->promotional_price;
-        } elseif ($product->discount_type == "percent") {
-            $price = $product->regular_price - ($product->promotional_price / 100) * $product->regular_price;
-            $discount = ($product->promotional_price / 100) * $product->regular_price;
-        } else {
-            $price = $product->regular_price;
-            $discount = "0";
-        }
+        $price = (float)$product->regular_price;
+        $discount = $this->getProductDiscountAmount($product);
 
         if ($customeOrder) {
             $totalVariantVolume = Veriant::where("pid", $veriant->pid)->sum(DB::raw('COALESCE(volume, 0)'));
@@ -171,6 +200,8 @@ class PosController extends Controller
 
         if (isset($exist) && !$customeOrder) {
             $exist->quantity = $exist->quantity + 1;
+            $exist->price = $price;
+            $exist->discount = $discount;
             $exist->save();
             $catitem = $exist;
         } else {
@@ -208,24 +239,43 @@ class PosController extends Controller
 
         if (isset($data) && count($data) > 0) {
             foreach ($data as $dats) {
-                $productPrice = (float)$dats->quantity * ((float)$dats->price - (float)$dats->discount);
-                $productPrice = number_format($productPrice, 2);
+                $unitPrice = (float)$dats->price;
+                $unitDiscount = (float)$dats->discount;
+                $quantity = (float)$dats->quantity;
+                $product = Product::find($dats->product_id);
 
-                $subtotal = (float)$subtotal + (float)$productPrice;
-                $totaltax = $totaltax + ceil((float)$this->calculateTaxForPos($subtotal, $tax));
+                if ($product && $unitDiscount > 0) {
+                    $regularPrice = (float)$product->regular_price;
+                    $legacySalePrice = max($regularPrice - $unitDiscount, 0);
 
-                $discount = $discount + ($dats->quantity * $dats->discount);
+                    if (abs($unitPrice - $legacySalePrice) < 0.01) {
+                        $unitPrice = $regularPrice;
+                        $dats->price = $regularPrice;
+                    }
+                }
+
+                $salePrice = max($unitPrice - $unitDiscount, 0);
+                $lineTotal = $quantity * $salePrice;
+
+                $dats->unit_price = round($unitPrice, 2);
+                $dats->sale_price = round($salePrice, 2);
+                $dats->line_total = round($lineTotal, 2);
+
+                $subtotal += $quantity * $unitPrice;
+                $discount += $quantity * $unitDiscount;
             }
         }
 
-        $total = $subtotal + $totaltax - $discount;
+        $taxableAmount = max($subtotal - $discount, 0);
+        $totaltax = ceil((float)$this->calculateTaxForPos($taxableAmount, $tax));
+        $total = $taxableAmount + $totaltax;
 
         return response()->json([
             'data' => $data,
-            'subtotal' => number_format($subtotal, 2),
-            'discount' => number_format($discount, 2),
-            'tax' => number_format($totaltax, 2),
-            'total' => number_format($total, 2),
+            'subtotal' => round($subtotal, 2),
+            'discount' => round($discount, 2),
+            'tax' => round($totaltax, 2),
+            'total' => round($total, 2),
         ]);
     }
 
@@ -459,7 +509,7 @@ class PosController extends Controller
                 $orderItem->product_id = $item['product_id'];
                 $orderItem->order_id = $order->id;
                 $orderItem->currency_id = $store->currency;
-                $orderItem->price = $item['price'];
+                $orderItem->price = $item['sale_price'] ?? max(((float)$item['price'] - (float)($item['discount'] ?? 0)), 0);
                 $orderItem->quantity = $item['quantity'];
                 $orderItem->color = $item['color'] ?? null;
                 $orderItem->size = $item['size'] ?? null;
@@ -480,7 +530,7 @@ class PosController extends Controller
                 $transaction = new Transaction();
                 $transaction->uid = $uid;
                 $transaction->order_id = $order->id;
-                $transaction->mode = $request->paymentmethod;
+                $transaction->mode = $request->onlinepaymentmethod ?? $request->paymentmethod;
                 $transaction->transaction_id = $request->transactionid;
                 $transaction->status = "pending";
                 $transaction->save();
@@ -604,7 +654,7 @@ class PosController extends Controller
             $orderItem->product_id = $item['product_id'];
             $orderItem->order_id = $order->id;
             $orderItem->currency_id = $store->currency;
-            $orderItem->price = $item['price'];
+            $orderItem->price = $item['sale_price'] ?? max(((float)$item['price'] - (float)($item['discount'] ?? 0)), 0);
             $orderItem->quantity = $item['quantity'];
             $orderItem->color = $item['color'] ?? null;
             $orderItem->size = $item['size'] ?? null;
@@ -715,7 +765,13 @@ class PosController extends Controller
 
     public function getsearchproduct(Request $request)
     {
-        $bid = decrypt($request->id);
+        $bid = $this->resolveBranchId($request->id);
+        if (!$bid) {
+            return response()->json([
+                'data' => []
+            ]);
+        }
+
         $product = Branchproduct::where('branch_id', $bid)->get();
         $data = [];
 
@@ -762,8 +818,15 @@ class PosController extends Controller
 
     public function getsearchproductbarcode(Request $request)
     {
-        $bid = decrypt($request->id);
+        $bid = $this->resolveBranchId($request->id);
+        if (!$bid) {
+            return response()->json([
+                'data' => []
+            ]);
+        }
+
         $product = Branchproduct::where('branch_id', $bid)->get();
+        $data = null;
         if (isset($product) && count($product) > 0) {
             foreach ($product as $key => $pps) {
                 $pp = Product::where('id', $pps->product_id)->where('barcode', $request->name)->first();
