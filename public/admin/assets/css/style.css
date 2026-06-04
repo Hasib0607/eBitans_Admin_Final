@@ -1,112 +1,90 @@
 .form-check-input:checked[type="checkbox"] {
-    background-image: linear-gradient(195deg, #f1593a 0%, #f1593a 100%) !important;
+    background-image: linear-gradient(195deg, #f1593a 0%, #ff5733 100%) !important;
 }
-
 .form-select {
     display: block;
     width: 100%;
     padding: 0.5rem 1rem 0.5rem 9px !important;
 }
-
 .form-control {
     display: block;
     width: 100%;
     padding: 0.5rem 8px !important;
 }
-
-.breadcrumb-item a {
-    color: #fff !important;
+.breadcrumb-item a{
+    color:#fff !important;
 }
-
-.breadcrumb-item {
+.breadcrumb-item{
     /*padding:0px 45px;*/
-    width: 125px;
+    width:125px;
     text-align: center;
 }
-
-.breadcrumb-item img {
-    width: 50px;
+.breadcrumb-item img{
+    width:50px;
     padding: 11px;
     background-color: gray;
     border-radius: 7px;
 }
-
-.breadcrumb-item.active a {
+.breadcrumb-item.active a{
     color: #f1593a !important;
 }
-
-.breadcrumb-item.active img {
+.breadcrumb-item.active img{
     background-color: #f1593a;
 }
-
-.main-content {
-    padding-top: 9px;
+.main-content{
+    margin-top:9px;
 }
-
-.navbars {
-    border: 0px solid;
+.navbars{
+    border:0px solid;
     border-radius: 10px;
 }
-
-.navbars nav {
-    margin-top: 13px;
+.navbars nav{
+margin-top:13px;
 }
-
-.breadcrumb-item:hover > a {
-    color: #f1593a !important;
+.breadcrumb-item:hover>a{
+    color:#f1593a !important;
 }
-
-.breadcrumb-item:hover > a > img {
-    color: #f1593a !important;
+.breadcrumb-item:hover>a>img{
+    color:#f1593a !important;
     background-color: #f1593a;
 }
-
-#toplist ul {
+#toplist ul{
     list-style-type: none;
 }
-
-#toplist ul li {
-    float: right;
-    padding: 10px 20px;
-    border: 1px solid #5e4c4c33;
+#toplist ul li{
+    float:right;
+    padding:10px 20px;
+    border:1px solid #5e4c4c33;
 }
 
-#toplist ul li.active {
-    background-color: #f1593a;
-    color: #fff;
+#toplist ul li.active{
+ background-color:#f1593a;
+ color:#fff;
 }
-
-#toplist ul li.active a {
-    color: #fff;
+#toplist ul li.active a{
+    color:#fff;
 }
-
-.form-control {
-    border: 1px solid #d2d6da !important;
+.form-control{
+    border:1px solid #d2d6da !important;
 }
-
-#toplist ul li:hover > a {
-    color: #344767;
+#toplist ul li:hover>a{
+    color:#344767;
 }
-
-.productlist .card-header {
-    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+.productlist .card-header{
+    border-bottom:1px solid rgba(0, 0, 0, 0.125);
 }
-
-.productlist .card-body .table th {
-    text-align: center;
-    color: black;
+.productlist .card-body .table th{
+ text-align: center;
+ color:black;
 }
-
-.productlist .card-body .table td {
+.productlist .card-body .table td{
     text-align: center;
 }
-
 .btn-file {
     position: relative;
     overflow: hidden;
-}
-
-.btn-file input[type=file] {
+  }
+  .btn-file input[type=file] {
     position: absolute;
     top: 0;
     right: 0;
@@ -119,17 +97,15 @@
     background: red;
     cursor: inherit;
     display: block;
-}
-
-.file-input-label {
-    padding: 0px 10px;
-    display: table-cell;
-    vertical-align: middle;
+  }
+  .file-input-label {
+      padding: 0px 10px;
+      display: table-cell;
+      vertical-align: middle;
     border: 1px solid #ddd;
     border-radius: 4px;
-}
-
-input[readonly] {
+  }
+  input[readonly] {
     background-color: white !important;
     cursor: text !important;
-}
+  }

@@ -58,7 +58,7 @@ return [
     'url' => env('APP_URL', 'http://localhost'),
     'short_url' => env('SUB_URL', 'http://localhost'),
 
-    'asset_url' => env('ASSET_URL', env('APP_URL', 'http://localhost')),
+    'asset_url' => env('ASSET_URL'),
 
     'charset' => 'utf8mb4',
     'collation' => 'utf8mb4_unicode_ci',

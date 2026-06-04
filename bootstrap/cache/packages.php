@@ -13,13 +13,13 @@
   ),
   'brian2694/laravel-toastr' => 
   array (
-    'providers' => 
-    array (
-      0 => 'Brian2694\\Toastr\\ToastrServiceProvider',
-    ),
     'aliases' => 
     array (
       'Toastr' => 'Brian2694\\Toastr\\Facades\\Toastr',
+    ),
+    'providers' => 
+    array (
+      0 => 'Brian2694\\Toastr\\ToastrServiceProvider',
     ),
   ),
   'codeboxr/ecourier-courier' => 
@@ -85,13 +85,13 @@
   ),
   'karim007/laravel-bkash-tokenize' => 
   array (
-    'providers' => 
-    array (
-      0 => 'Karim007\\LaravelBkashTokenize\\BkashTokenizeServiceProvider',
-    ),
     'aliases' => 
     array (
       'LaravelBkashTokenize' => 'Karim007\\LaravelBkashTokenize\\LaravelBkashTokenize',
+    ),
+    'providers' => 
+    array (
+      0 => 'Karim007\\LaravelBkashTokenize\\BkashTokenizeServiceProvider',
     ),
   ),
   'karim007/laravel-nagad' => 
@@ -235,15 +235,33 @@
       'QrCode' => 'SimpleSoftwareIO\\QrCode\\Facades\\QrCode',
     ),
   ),
+  'spatie/laravel-backup' => 
+  array (
+    'providers' => 
+    array (
+      0 => 'Spatie\\Backup\\BackupServiceProvider',
+    ),
+  ),
   'spatie/laravel-ignition' => 
   array (
+    'aliases' => 
+    array (
+      'Flare' => 'Spatie\\LaravelIgnition\\Facades\\Flare',
+    ),
     'providers' => 
     array (
       0 => 'Spatie\\LaravelIgnition\\IgnitionServiceProvider',
     ),
+  ),
+  'spatie/laravel-signal-aware-command' => 
+  array (
     'aliases' => 
     array (
-      'Flare' => 'Spatie\\LaravelIgnition\\Facades\\Flare',
+      'Signal' => 'Spatie\\SignalAwareCommand\\Facades\\Signal',
+    ),
+    'providers' => 
+    array (
+      0 => 'Spatie\\SignalAwareCommand\\SignalAwareCommandServiceProvider',
     ),
   ),
   'srmklive/paypal' => 
@@ -299,6 +317,17 @@
     'providers' => 
     array (
       0 => 'UniSharp\\LaravelFilemanager\\LaravelFilemanagerServiceProvider',
+    ),
+  ),
+  'yaza/laravel-google-drive-storage' => 
+  array (
+    'aliases' => 
+    array (
+      'LaravelGoogleDriveStorage' => 'Yaza\\LaravelGoogleDriveStorage\\Facades\\LaravelGoogleDriveStorage',
+    ),
+    'providers' => 
+    array (
+      0 => 'Yaza\\LaravelGoogleDriveStorage\\LaravelGoogleDriveStorageServiceProvider',
     ),
   ),
 );

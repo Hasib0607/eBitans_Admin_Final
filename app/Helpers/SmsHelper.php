@@ -152,9 +152,9 @@ function smsLogger($phone, $text, $purpose = null, $user_type = 1, $store_id = n
 function TwilioSms($number = "+8801712714334", $text = "Hello this is a test message from eBitans")
 {
     try {
-        $sid = env('TWILIO_ACCOUNT_SID', '');
-        $token = env('TWILIO_AUTH_TOKEN', '');
-        $formNumber = env('TWILIO_FROM_NUMBER', '');
+        $sid = "ACe65181f9c2bf7c265fd2d2d76f5bcaa6";
+        $token = "c9bee4d12d57aa23dabf36529711e34c";
+        $formNumber = "+12185794568";
 
         $twilio = new Client($sid, $token);
         $message = $twilio->messages->create(
