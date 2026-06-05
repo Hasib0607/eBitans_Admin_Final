@@ -13,7 +13,9 @@ use App\Models\StoreDesign;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 class ThemeController extends Controller
 {
@@ -25,10 +27,8 @@ class ThemeController extends Controller
                 return response()->json(['status' => false, 'message' => 'Domain name is required!.']);
             }
 
-            $store = Store::with('current_currency')
-                ->where('url', $name)
-                ->where('expiry_date', '>=', Carbon::now())
-                ->first();
+            $storeRecord = $this->resolveActiveStoreByDomain($name);
+            $store = $storeRecord ? Store::with('current_currency')->find($storeRecord->id) : null;
 
             if (!$store) {
                 return response()->json(['status' => false, 'message' => 'Store not found!.']);
@@ -104,6 +104,54 @@ class ThemeController extends Controller
         }
     }
 
+    private function resolveActiveStoreByDomain(string $name): ?object
+    {
+        $normalizedDomain = $this->normalizeDomainName($name);
+        $slug = $this->domainSlug($normalizedDomain);
+        $storeIdFromDomain = DB::table('domains')
+            ->whereRaw('LOWER(TRIM(name)) = ?', [strtolower($normalizedDomain)])
+            ->whereIn('status', ['Active', 'active'])
+            ->value('store_id');
+
+        return DB::table('stores')
+            ->where(function ($query) use ($normalizedDomain, $slug, $storeIdFromDomain) {
+                $query->whereRaw('LOWER(TRIM(url)) = ?', [strtolower($normalizedDomain)])
+                    ->orWhereRaw('LOWER(TRIM(slug)) = ?', [strtolower($slug)]);
+
+                if (!empty($storeIdFromDomain)) {
+                    $query->orWhere('id', $storeIdFromDomain);
+                }
+            })
+            ->where('expiry_date', '>=', Carbon::now()->toDateString())
+            ->where(function ($query) {
+                $query->whereNull('store_status')->orWhere('store_status', 1);
+            })
+            ->first();
+    }
+
+    private function normalizeDomainName(string $name): string
+    {
+        $name = trim($name);
+        $host = parse_url($name, PHP_URL_HOST);
+
+        if ($host) {
+            $name = $host;
+        }
+
+        return strtolower(trim($name, "/ \t\n\r\0\x0B"));
+    }
+
+    private function domainSlug(string $domain): string
+    {
+        $storeSubDomain = strtolower((string) env('STORE_SUB_DOMAIN', ''));
+
+        if ($storeSubDomain !== '' && Str::endsWith($domain, '.' . $storeSubDomain)) {
+            return Str::before($domain, '.' . $storeSubDomain);
+        }
+
+        return Str::before($domain, '.');
+    }
+
 
     public function layoutProducts(Request $request)
     {
@@ -119,9 +167,8 @@ class ThemeController extends Controller
         }
 
         $name = $validator->validate()['name'];
-        $store = Store::where('url', $name)
-            ->where('expiry_date', '>=', Carbon::now())
-            ->first();
+        $storeRecord = $this->resolveActiveStoreByDomain($name);
+        $store = $storeRecord ? Store::find($storeRecord->id) : null;
         if (!isset($store)) {
             return response()->json(['error' => 'your account not found or expired'], 404);
         }
@@ -144,9 +191,8 @@ class ThemeController extends Controller
 
     public function getProductForLayout($name)
     {
-        $store = Store::where('url', $name)
-            ->where('expiry_date', '>=', Carbon::now())
-            ->first();
+        $storeRecord = $this->resolveActiveStoreByDomain($name);
+        $store = $storeRecord ? Store::find($storeRecord->id) : null;
         if (!isset($store)) {
             return response()->json(['error' => 'your account not found or expired'], 404);
         }
