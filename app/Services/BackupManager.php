@@ -124,21 +124,28 @@ class BackupManager
 
         $fileName = 'database-backup-' . date('Y-m-d-H-i-s') . '.sql';
         $filePath = $backupDir . DIRECTORY_SEPARATOR . $fileName;
+        $errorLogPath = $backupDir . DIRECTORY_SEPARATOR . 'mysqldump-errors.log';
+        $temporaryFiles = [];
 
-        $command = sprintf(
-            'mysqldump --host=%s --port=%s --protocol=TCP --user=%s --password=%s --single-transaction --quick --routines --triggers --events --default-character-set=utf8mb4 %s > %s 2>&1',
-            escapeshellarg(env('DB_HOST', '127.0.0.1')),
-            escapeshellarg(env('DB_PORT', '3306')),
-            escapeshellarg(env('DB_USERNAME')),
-            escapeshellarg(env('DB_PASSWORD')),
-            escapeshellarg(env('DB_DATABASE')),
-            escapeshellarg($filePath)
-        );
+        try {
+            $defaultsFile = $this->createMysqlClientDefaultsFile($temporaryFiles);
 
-        exec($command, $output, $resultCode);
+            $command = sprintf(
+                '%s --defaults-extra-file=%s --protocol=TCP --single-transaction --quick --hex-blob --routines --triggers --events %s > %s 2>> %s',
+                escapeshellarg($this->resolveMysqldumpBinary()),
+                escapeshellarg($defaultsFile),
+                escapeshellarg(env('DB_DATABASE')),
+                escapeshellarg($filePath),
+                escapeshellarg($errorLogPath)
+            );
 
-        if ($resultCode !== 0 || !file_exists($filePath) || filesize($filePath) <= 0) {
-            throw new \Exception('Database backup failed: ' . $this->commandOutputMessage($output));
+            exec($command, $output, $resultCode);
+
+            if ($resultCode !== 0 || !file_exists($filePath) || filesize($filePath) <= 0) {
+                throw new \Exception('Database backup failed: ' . $this->commandOutputMessage($output));
+            }
+        } finally {
+            $this->cleanupTemporaryFiles($temporaryFiles);
         }
     }
 
@@ -474,84 +481,366 @@ class BackupManager
             throw new \Exception('Database restore failed: SQL backup file is missing or empty.');
         }
 
-        $backupContainsUsers = $this->sqlBackupContainsUsersTable($filePath);
-        $importFilePath = $this->buildDatabaseImportFile($filePath);
+        $temporaryFiles = [];
+        $sqlFilePath = null;
+        $importArtifacts = null;
 
         try {
-            $command = sprintf(
-                'mysql --host=%s --port=%s --protocol=TCP --user=%s --password=%s --default-character-set=utf8mb4 --binary-mode=1 %s < %s 2>&1',
-                escapeshellarg(env('DB_HOST', '127.0.0.1')),
-                escapeshellarg(env('DB_PORT', '3306')),
-                escapeshellarg(env('DB_USERNAME')),
-                escapeshellarg(env('DB_PASSWORD')),
-                escapeshellarg(env('DB_DATABASE')),
-                escapeshellarg($importFilePath)
+            $sqlFilePath = $this->normalizeDatabaseBackupFile($filePath, $temporaryFiles);
+            $backupContainsUsers = $this->sqlBackupContainsUsersTable($sqlFilePath);
+            $importArtifacts = $this->createDatabaseImportArtifacts($sqlFilePath, $temporaryFiles);
+
+            [$exitCode, $output] = $this->runShellCommandWithHeartbeat(
+                $importArtifacts['command'],
+                $progressCallback
             );
 
-            [$exitCode, $output] = $this->runShellCommandWithHeartbeat($command, $progressCallback);
-
             if ($exitCode !== 0) {
-                throw new \Exception('Database restore failed: ' . $this->commandOutputMessage([$output]));
+                throw new \Exception('Database restore failed: ' . $this->sanitizeMysqlErrorMessage($output));
             }
 
             $this->verifyUsersTableRestored($backupContainsUsers);
         } finally {
-            if ($importFilePath !== $filePath && file_exists($importFilePath)) {
-                @unlink($importFilePath);
-            }
+            $this->cleanupTemporaryFiles($temporaryFiles);
         }
 
-        $message = trim($output);
+        $message = $this->sanitizeMysqlErrorMessage($output ?? '');
 
         return $message === '' ? null : 'Database restored with warnings: ' . mb_substr($message, 0, 600);
     }
 
-    protected function buildDatabaseImportFile(string $filePath): string
+    protected function normalizeDatabaseBackupFile(string $filePath, array &$temporaryFiles): string
     {
-        $importFilePath = $filePath . '.import.sql';
-        $importHandle = fopen($importFilePath, 'wb');
+        $format = $this->detectBackupFileFormat($filePath);
 
-        if ($importHandle === false) {
-            throw new \Exception('Database restore failed: unable to prepare import file.');
+        if ($format === 'gzip') {
+            $decompressedPath = $this->decompressGzipToSql($filePath);
+            $temporaryFiles[] = $decompressedPath;
+
+            return $decompressedPath;
         }
 
-        try {
-            fwrite(
-                $importHandle,
-                "SET NAMES utf8mb4;\n"
-                . "SET FOREIGN_KEY_CHECKS=0;\n"
-                . "SET UNIQUE_CHECKS=0;\n"
-                . "SET SQL_MODE='NO_AUTO_VALUE_ON_ZERO';\n"
+        if ($format === 'zip') {
+            $extractedPath = $this->extractSqlFromZip($filePath);
+            $temporaryFiles[] = $extractedPath;
+
+            return $extractedPath;
+        }
+
+        $this->assertReadableSqlBackup($filePath);
+
+        return $filePath;
+    }
+
+    protected function detectBackupFileFormat(string $filePath): string
+    {
+        $extension = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+
+        if (in_array($extension, ['gz', 'gzip'], true)) {
+            return 'gzip';
+        }
+
+        if ($extension === 'zip') {
+            return 'zip';
+        }
+
+        $handle = fopen($filePath, 'rb');
+
+        if ($handle === false) {
+            throw new \Exception('Database restore failed: unable to read backup file.');
+        }
+
+        $header = fread($handle, 4);
+        fclose($handle);
+
+        if ($header !== false && strlen($header) >= 2 && $header[0] === "\x1f" && $header[1] === "\x8b") {
+            return 'gzip';
+        }
+
+        if ($header !== false && str_starts_with($header, 'PK')) {
+            return 'zip';
+        }
+
+        return 'sql';
+    }
+
+    protected function assertReadableSqlBackup(string $filePath): void
+    {
+        $sample = (string) file_get_contents($filePath, false, null, 0, 8192);
+
+        if ($sample === '') {
+            throw new \Exception('Database restore failed: SQL backup file is empty.');
+        }
+
+        if (strlen($sample) >= 2 && $sample[0] === "\x1f" && $sample[1] === "\x8b") {
+            throw new \Exception('Database restore failed: backup file is gzip compressed but could not be decompressed.');
+        }
+
+        if (!preg_match('/^(\-\-|\/\*|SET|CREATE|DROP|INSERT|LOCK|USE)/im', ltrim($sample))) {
+            throw new \Exception(
+                'Database restore failed: downloaded backup is not a valid SQL dump. '
+                . 'The file may be corrupted, incomplete, or in an unsupported format.'
             );
+        }
+    }
 
-            $backupHandle = fopen($filePath, 'rb');
+    protected function decompressGzipToSql(string $gzipPath): string
+    {
+        $sqlPath = $gzipPath . '.decompressed.sql';
 
-            if ($backupHandle === false) {
-                throw new \Exception('Database restore failed: unable to read SQL backup file.');
+        if (function_exists('gzopen')) {
+            $input = @gzopen($gzipPath, 'rb');
+
+            if ($input === false) {
+                throw new \Exception('Database restore failed: unable to open gzip backup file.');
             }
 
-            stream_copy_to_stream($backupHandle, $importHandle);
-            fclose($backupHandle);
+            $output = fopen($sqlPath, 'wb');
 
-            fwrite(
-                $importHandle,
-                "\nSET FOREIGN_KEY_CHECKS=1;\n"
-                . "SET UNIQUE_CHECKS=1;\n"
+            if ($output === false) {
+                gzclose($input);
+                throw new \Exception('Database restore failed: unable to prepare decompressed SQL file.');
+            }
+
+            try {
+                while (!gzeof($input)) {
+                    $chunk = gzread($input, 1024 * 1024);
+
+                    if ($chunk === false) {
+                        throw new \Exception('Database restore failed: gzip backup file appears to be corrupted.');
+                    }
+
+                    if ($chunk !== '') {
+                        fwrite($output, $chunk);
+                    }
+                }
+            } finally {
+                gzclose($input);
+                fclose($output);
+            }
+        } else {
+            $command = sprintf(
+                'gunzip -c %s > %s 2>&1',
+                escapeshellarg($gzipPath),
+                escapeshellarg($sqlPath)
             );
-        } catch (\Throwable $e) {
-            fclose($importHandle);
-            @unlink($importFilePath);
-            throw $e;
+
+            exec($command, $output, $exitCode);
+
+            if ($exitCode !== 0 || !file_exists($sqlPath) || filesize($sqlPath) <= 0) {
+                throw new \Exception(
+                    'Database restore failed: unable to decompress gzip backup file. '
+                    . $this->commandOutputMessage($output)
+                );
+            }
         }
 
-        fclose($importHandle);
+        $this->assertReadableSqlBackup($sqlPath);
 
-        if (!file_exists($importFilePath) || filesize($importFilePath) <= 0) {
-            @unlink($importFilePath);
-            throw new \Exception('Database restore failed: prepared import file is empty.');
+        return $sqlPath;
+    }
+
+    protected function extractSqlFromZip(string $zipPath): string
+    {
+        if (!class_exists(\ZipArchive::class)) {
+            throw new \Exception('Database restore failed: ZipArchive extension is required to restore zip backups.');
         }
 
-        return $importFilePath;
+        $zip = new \ZipArchive();
+
+        if ($zip->open($zipPath) !== true) {
+            throw new \Exception('Database restore failed: unable to open zip backup file.');
+        }
+
+        $sqlPath = null;
+
+        for ($index = 0; $index < $zip->numFiles; $index++) {
+            $entryName = $zip->getNameIndex($index);
+
+            if (!is_string($entryName) || !preg_match('/\.sql$/i', $entryName)) {
+                continue;
+            }
+
+            $sqlPath = $zipPath . '.extracted.sql';
+            $stream = $zip->getStream($entryName);
+
+            if ($stream === false) {
+                $zip->close();
+                throw new \Exception('Database restore failed: unable to read SQL file from zip backup.');
+            }
+
+            $output = fopen($sqlPath, 'wb');
+
+            if ($output === false) {
+                fclose($stream);
+                $zip->close();
+                throw new \Exception('Database restore failed: unable to prepare extracted SQL file.');
+            }
+
+            stream_copy_to_stream($stream, $output);
+            fclose($stream);
+            fclose($output);
+            break;
+        }
+
+        $zip->close();
+
+        if ($sqlPath === null || !file_exists($sqlPath) || filesize($sqlPath) <= 0) {
+            throw new \Exception('Database restore failed: zip backup does not contain a .sql file.');
+        }
+
+        $this->assertReadableSqlBackup($sqlPath);
+
+        return $sqlPath;
+    }
+
+    protected function createDatabaseImportArtifacts(string $sqlFilePath, array &$temporaryFiles): array
+    {
+        $artifactDir = dirname($sqlFilePath);
+        $preamblePath = $artifactDir . DIRECTORY_SEPARATOR . 'import-preamble-' . uniqid('', true) . '.sql';
+        $epiloguePath = $artifactDir . DIRECTORY_SEPARATOR . 'import-epilogue-' . uniqid('', true) . '.sql';
+
+        $preamble = "SET NAMES utf8mb4;\n"
+            . "SET FOREIGN_KEY_CHECKS=0;\n"
+            . "SET UNIQUE_CHECKS=0;\n"
+            . "SET SQL_MODE='NO_AUTO_VALUE_ON_ZERO';\n";
+        $epilogue = "\nSET FOREIGN_KEY_CHECKS=1;\nSET UNIQUE_CHECKS=1;\n";
+
+        if (file_put_contents($preamblePath, $preamble) === false) {
+            throw new \Exception('Database restore failed: unable to prepare import preamble.');
+        }
+
+        if (file_put_contents($epiloguePath, $epilogue) === false) {
+            @unlink($preamblePath);
+            throw new \Exception('Database restore failed: unable to prepare import epilogue.');
+        }
+
+        $temporaryFiles[] = $preamblePath;
+        $temporaryFiles[] = $epiloguePath;
+
+        $defaultsFile = $this->createMysqlClientDefaultsFile($temporaryFiles);
+
+        $command = sprintf(
+            'cat %s %s %s | %s --defaults-extra-file=%s --protocol=TCP --binary-mode=1 --max-allowed-packet=512M --force %s 2>&1',
+            escapeshellarg($preamblePath),
+            escapeshellarg($sqlFilePath),
+            escapeshellarg($epiloguePath),
+            escapeshellarg($this->resolveMysqlBinary()),
+            escapeshellarg($defaultsFile),
+            escapeshellarg(env('DB_DATABASE'))
+        );
+
+        return [
+            'command' => $command,
+            'preamble_path' => $preamblePath,
+            'epilogue_path' => $epiloguePath,
+        ];
+    }
+
+    protected function cleanupTemporaryFiles(array $temporaryFiles): void
+    {
+        foreach (array_unique($temporaryFiles) as $temporaryFile) {
+            if (is_string($temporaryFile) && file_exists($temporaryFile)) {
+                @unlink($temporaryFile);
+            }
+        }
+    }
+
+    protected function resolveMysqlBinary(): string
+    {
+        return $this->resolveCliBinary('mysql', [
+            'mysql',
+            'mariadb',
+            '/usr/bin/mysql',
+            '/usr/local/mysql/bin/mysql',
+            '/usr/local/bin/mysql',
+        ]);
+    }
+
+    protected function resolveMysqldumpBinary(): string
+    {
+        return $this->resolveCliBinary('mysqldump', [
+            'mysqldump',
+            'mariadb-dump',
+            '/usr/bin/mysqldump',
+            '/usr/local/mysql/bin/mysqldump',
+            '/usr/local/bin/mysqldump',
+        ]);
+    }
+
+    protected function resolveCliBinary(string $fallback, array $candidates): string
+    {
+        foreach ($candidates as $candidate) {
+            if (str_contains($candidate, '/')) {
+                if (is_executable($candidate)) {
+                    return $candidate;
+                }
+
+                continue;
+            }
+
+            $resolvedPath = trim((string) shell_exec('command -v ' . escapeshellarg($candidate) . ' 2>/dev/null'));
+
+            if ($resolvedPath !== '' && is_executable($resolvedPath)) {
+                return $resolvedPath;
+            }
+        }
+
+        return $fallback;
+    }
+
+    protected function createMysqlClientDefaultsFile(array &$temporaryFiles = []): string
+    {
+        $defaultsDir = storage_path('app/backup-restore-tmp');
+        $this->ensureDirectory($defaultsDir);
+
+        $defaultsPath = $defaultsDir . DIRECTORY_SEPARATOR . 'mysql-client-' . uniqid('', true) . '.cnf';
+        $content = "[client]\n"
+            . 'host=' . $this->mysqlConfigValue((string) env('DB_HOST', '127.0.0.1')) . "\n"
+            . 'port=' . $this->mysqlConfigValue((string) env('DB_PORT', '3306')) . "\n"
+            . 'user=' . $this->mysqlConfigValue((string) env('DB_USERNAME', '')) . "\n"
+            . 'password=' . $this->mysqlConfigValue((string) env('DB_PASSWORD', '')) . "\n"
+            . "default-character-set=utf8mb4\n";
+
+        if (file_put_contents($defaultsPath, $content) === false) {
+            throw new \Exception('Unable to prepare MySQL client configuration.');
+        }
+
+        @chmod($defaultsPath, 0600);
+        $temporaryFiles[] = $defaultsPath;
+
+        return $defaultsPath;
+    }
+
+    protected function mysqlConfigValue(string $value): string
+    {
+        if ($value === '' || preg_match('/^[A-Za-z0-9_\-\.]+$/', $value)) {
+            return $value;
+        }
+
+        return '"' . str_replace(['\\', '"'], ['\\\\', '\\"'], $value) . '"';
+    }
+
+    protected function sanitizeMysqlErrorMessage(string $output): string
+    {
+        $output = trim($output);
+
+        if ($output === '') {
+            return 'No command output returned. Please verify MySQL client, DB credentials, and database permissions.';
+        }
+
+        if (preg_match('/ERROR\s+\d+\s+\([^\)]+\)(?:\s+at\s+line\s+\d+)?:[^\r\n]*/i', $output, $matches)) {
+            return preg_replace('/[^\x09\x0A\x0D\x20-\x7E]/', '', $matches[0]) ?: 'MySQL import failed.';
+        }
+
+        $clean = preg_replace('/[^\x09\x0A\x0D\x20-\x7E]/', '', $output);
+        $clean = trim((string) $clean);
+
+        if ($clean === '') {
+            return 'MySQL import failed. The backup file may be compressed, corrupted, or incomplete.';
+        }
+
+        return mb_substr($clean, 0, 1000);
     }
 
     protected function sqlBackupContainsUsersTable(string $filePath): bool
@@ -646,11 +935,7 @@ class BackupManager
     {
         $message = trim(implode("\n", array_filter($output)));
 
-        if ($message === '') {
-            return 'No command output returned. Please verify MySQL client, DB credentials, and database permissions.';
-        }
-
-        return mb_substr($message, 0, 1000);
+        return $this->sanitizeMysqlErrorMessage($message);
     }
 
     public function restoreZipToBasePath(string $filePath, ?callable $progressCallback = null): ?string
