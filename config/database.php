@@ -2,6 +2,13 @@
 
 use Illuminate\Support\Str;
 
+$databaseUrl = env('DATABASE_URL');
+$pgsqlDatabaseUrl = $databaseUrl;
+
+if (is_string($pgsqlDatabaseUrl) && Str::startsWith($pgsqlDatabaseUrl, ['postgres://', 'postgresql://', 'pgsql://'])) {
+    $pgsqlDatabaseUrl = preg_replace('/([?&]charset=)utf8mb4/i', '$1UTF8', $pgsqlDatabaseUrl);
+}
+
 return [
 
     /*
@@ -68,13 +75,13 @@ return [
 
         'pgsql' => [
             'driver' => 'pgsql',
-            'url' => env('DATABASE_URL'),
+            'url' => $pgsqlDatabaseUrl,
             'host' => env('DB_HOST', '127.0.0.1'),
             'port' => env('DB_PORT', '5432'),
             'database' => env('DB_DATABASE', 'forge'),
             'username' => env('DB_USERNAME', 'forge'),
             'password' => env('DB_PASSWORD', ''),
-            'charset' => 'utf8',
+            'charset' => 'UTF8',
             'prefix' => '',
             'prefix_indexes' => true,
             'search_path' => 'public',
