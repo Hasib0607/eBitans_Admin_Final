@@ -6197,10 +6197,13 @@ class SuperAdminController extends Controller
 
     public function superstaffAllowedIps()
     {
-        $ips = SuperstaffAllowedIp::latest()->paginate(20);
+        $ipTableReady = \Illuminate\Support\Facades\Schema::hasTable('superstaff_allowed_ips');
+        $ips = $ipTableReady
+            ? SuperstaffAllowedIp::latest()->paginate(20)
+            : new LengthAwarePaginator([], 0, 20);
         $restrictionEnabled = SuperAdminSetting::getValue('superstaff_ip_restriction_enabled', '1') !== '0';
 
-        return view('superadmin.setting.superstaff-allowed-ips', compact('ips', 'restrictionEnabled'));
+        return view('superadmin.setting.superstaff-allowed-ips', compact('ips', 'restrictionEnabled', 'ipTableReady'));
     }
 
     public function updateSuperstaffIpRestriction(Request $request)
@@ -6218,6 +6221,11 @@ class SuperAdminController extends Controller
 
     public function storeSuperstaffAllowedIp(Request $request)
     {
+        if (!\Illuminate\Support\Facades\Schema::hasTable('superstaff_allowed_ips')) {
+            Session::flash('error', 'Super staff IP table is missing. Please run the migration first.');
+            return back();
+        }
+
         $request->validate([
             'name' => 'required|string|max:255',
             'ip_address' => 'required|ip|max:45|unique:superstaff_allowed_ips,ip_address',
@@ -6237,6 +6245,11 @@ class SuperAdminController extends Controller
 
     public function updateSuperstaffAllowedIp(Request $request, $id)
     {
+        if (!\Illuminate\Support\Facades\Schema::hasTable('superstaff_allowed_ips')) {
+            Session::flash('error', 'Super staff IP table is missing. Please run the migration first.');
+            return back();
+        }
+
         $ip = SuperstaffAllowedIp::findOrFail($id);
 
         $request->validate([
@@ -6257,6 +6270,11 @@ class SuperAdminController extends Controller
 
     public function deleteSuperstaffAllowedIp($id)
     {
+        if (!\Illuminate\Support\Facades\Schema::hasTable('superstaff_allowed_ips')) {
+            Session::flash('error', 'Super staff IP table is missing. Please run the migration first.');
+            return back();
+        }
+
         SuperstaffAllowedIp::findOrFail($id)->delete();
 
         Session::flash('success', 'Super staff allowed IP deleted successfully.');

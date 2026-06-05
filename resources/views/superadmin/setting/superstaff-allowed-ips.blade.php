@@ -5,6 +5,13 @@
         @include('superadmin.share.settings-top-nav')
 
         <div class="container-fluid mt-4">
+            @if (!$ipTableReady)
+                <div class="alert alert-warning text-white">
+                    Super staff IP table is missing. Please run:
+                    <code class="text-white">php artisan migrate --path=database/migrations/2026_06_05_000001_create_superstaff_allowed_ips_table.php</code>
+                </div>
+            @endif
+
             <div class="row">
                 <div class="col-lg-4 mb-4">
                     <div class="card mb-4">
@@ -56,17 +63,19 @@
                                 <div class="mb-3">
                                     <label class="form-label">Name</label>
                                     <input type="text" name="name" class="form-control" value="{{ old('name') }}"
-                                           placeholder="Hasib Office" required>
+                                           placeholder="Hasib Office" required @if(!$ipTableReady) disabled @endif>
                                 </div>
 
                                 <div class="mb-3">
                                     <label class="form-label">IP Address</label>
                                     <input type="text" name="ip_address" class="form-control"
                                            value="{{ old('ip_address', request()->ip()) }}" placeholder="103.120.161.190"
-                                           required>
+                                           required @if(!$ipTableReady) disabled @endif>
                                 </div>
 
-                                <button type="submit" class="btn btn-primary mb-0">Add IP</button>
+                                <button type="submit" class="btn btn-primary mb-0" @if(!$ipTableReady) disabled @endif>
+                                    Add IP
+                                </button>
                             </form>
                         </div>
                     </div>
