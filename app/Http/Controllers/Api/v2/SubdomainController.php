@@ -190,10 +190,13 @@ class SubdomainController extends Controller
         }
 
         try {
-            $cacheKey = "store_lookup_{$name}";
+            $cacheKey = "store_lookup_v2_{$name}";
 
             $store = Cache::remember($cacheKey, 600, function () use ($name) {
-                return Store::where('url', $name)->where('expiry_date', '>=', Carbon::now())->first();
+                return DB::table('stores')
+                    ->where('url', $name)
+                    ->where('expiry_date', '>=', Carbon::now())
+                    ->first();
             });
 
             if ($store) {
@@ -222,7 +225,10 @@ class SubdomainController extends Controller
                 return response()->json(['status' => false, 'message' => 'Section name is required']);
             }
 
-            $store = Store::where('url', $name)->where('expiry_date', '>=', Carbon::now())->first();
+            $store = DB::table('stores')
+                ->where('url', $name)
+                ->where('expiry_date', '>=', Carbon::now())
+                ->first();
 
             if (isset($store)) {
                 switch ($section) {
@@ -286,15 +292,17 @@ class SubdomainController extends Controller
                             "contact",
                         ];
 
-                        $cacheKey = "design_layout_store_{$store->id}";
+                        $cacheKey = "design_layout_store_v2_{$store->id}";
 
                         $data = Cache::remember($cacheKey, now()->addMinutes(5), function () use ($store, $columns) {
-                            $design = Design::where('store_id', $store->id)->first();
+                            $design = DB::table('designs')->where('store_id', $store->id)->first();
 
                             if ($design) {
+                                $design = (array) $design;
+
                                 foreach ($columns as $column) {
-                                    if (isset($design->$column) && $design->$column === "none") {
-                                        $design->$column = null;
+                                    if (array_key_exists($column, $design) && $design[$column] === "none") {
+                                        $design[$column] = null;
                                     }
                                 }
                             }
