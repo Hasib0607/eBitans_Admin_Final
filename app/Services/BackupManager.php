@@ -475,28 +475,83 @@ class BackupManager
         }
 
         $backupContainsUsers = $this->sqlBackupContainsUsersTable($filePath);
+        $importFilePath = $this->buildDatabaseImportFile($filePath);
 
-        $command = sprintf(
-            '(printf %%s\n "SET NAMES utf8mb4;" "SET FOREIGN_KEY_CHECKS=0;" "SET UNIQUE_CHECKS=0;" "SET SQL_MODE=NO_AUTO_VALUE_ON_ZERO;"; cat %s; printf %%s\n "SET FOREIGN_KEY_CHECKS=1;" "SET UNIQUE_CHECKS=1;") | mysql --host=%s --port=%s --protocol=TCP --user=%s --password=%s --default-character-set=utf8mb4 --binary-mode=1 %s 2>&1',
-            escapeshellarg($filePath),
-            escapeshellarg(env('DB_HOST', '127.0.0.1')),
-            escapeshellarg(env('DB_PORT', '3306')),
-            escapeshellarg(env('DB_USERNAME')),
-            escapeshellarg(env('DB_PASSWORD')),
-            escapeshellarg(env('DB_DATABASE'))
-        );
+        try {
+            $command = sprintf(
+                'mysql --host=%s --port=%s --protocol=TCP --user=%s --password=%s --default-character-set=utf8mb4 --binary-mode=1 %s < %s 2>&1',
+                escapeshellarg(env('DB_HOST', '127.0.0.1')),
+                escapeshellarg(env('DB_PORT', '3306')),
+                escapeshellarg(env('DB_USERNAME')),
+                escapeshellarg(env('DB_PASSWORD')),
+                escapeshellarg(env('DB_DATABASE')),
+                escapeshellarg($importFilePath)
+            );
 
-        [$exitCode, $output] = $this->runShellCommandWithHeartbeat($command, $progressCallback);
+            [$exitCode, $output] = $this->runShellCommandWithHeartbeat($command, $progressCallback);
 
-        if ($exitCode !== 0) {
-            throw new \Exception('Database restore failed: ' . $this->commandOutputMessage([$output]));
+            if ($exitCode !== 0) {
+                throw new \Exception('Database restore failed: ' . $this->commandOutputMessage([$output]));
+            }
+
+            $this->verifyUsersTableRestored($backupContainsUsers);
+        } finally {
+            if ($importFilePath !== $filePath && file_exists($importFilePath)) {
+                @unlink($importFilePath);
+            }
         }
-
-        $this->verifyUsersTableRestored($backupContainsUsers);
 
         $message = trim($output);
 
         return $message === '' ? null : 'Database restored with warnings: ' . mb_substr($message, 0, 600);
+    }
+
+    protected function buildDatabaseImportFile(string $filePath): string
+    {
+        $importFilePath = $filePath . '.import.sql';
+        $importHandle = fopen($importFilePath, 'wb');
+
+        if ($importHandle === false) {
+            throw new \Exception('Database restore failed: unable to prepare import file.');
+        }
+
+        try {
+            fwrite(
+                $importHandle,
+                "SET NAMES utf8mb4;\n"
+                . "SET FOREIGN_KEY_CHECKS=0;\n"
+                . "SET UNIQUE_CHECKS=0;\n"
+                . "SET SQL_MODE='NO_AUTO_VALUE_ON_ZERO';\n"
+            );
+
+            $backupHandle = fopen($filePath, 'rb');
+
+            if ($backupHandle === false) {
+                throw new \Exception('Database restore failed: unable to read SQL backup file.');
+            }
+
+            stream_copy_to_stream($backupHandle, $importHandle);
+            fclose($backupHandle);
+
+            fwrite(
+                $importHandle,
+                "\nSET FOREIGN_KEY_CHECKS=1;\n"
+                . "SET UNIQUE_CHECKS=1;\n"
+            );
+        } catch (\Throwable $e) {
+            fclose($importHandle);
+            @unlink($importFilePath);
+            throw $e;
+        }
+
+        fclose($importHandle);
+
+        if (!file_exists($importFilePath) || filesize($importFilePath) <= 0) {
+            @unlink($importFilePath);
+            throw new \Exception('Database restore failed: prepared import file is empty.');
+        }
+
+        return $importFilePath;
     }
 
     protected function sqlBackupContainsUsersTable(string $filePath): bool
