@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Services\BackupManager;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
 
 class RunSelectedDriveRestore extends Command
@@ -21,6 +22,7 @@ class RunSelectedDriveRestore extends Command
                 ['database', 'code', 'public'],
                 $this->argument('types')
             ));
+            $types = $this->prioritizeDatabaseRestoreLast($types);
 
             if (empty($types)) {
                 $manager->setStatus('restore-drive', 'failed', 100, 'No valid restore type selected.');
@@ -132,6 +134,7 @@ class RunSelectedDriveRestore extends Command
             }
 
             File::deleteDirectory($tmpDir);
+            $this->clearApplicationCache();
             $manager->setStatus('restore-drive', 'completed', 100, 'Selected Google Drive backup(s) restored successfully.');
 
             return self::SUCCESS;
@@ -140,5 +143,23 @@ class RunSelectedDriveRestore extends Command
             $manager->setStatus('restore-drive', 'failed', 100, $e->getMessage());
             return self::FAILURE;
         }
+    }
+
+    protected function prioritizeDatabaseRestoreLast(array $types): array
+    {
+        if (!in_array('database', $types, true)) {
+            return $types;
+        }
+
+        $ordered = array_values(array_filter($types, fn (string $type) => $type !== 'database'));
+        $ordered[] = 'database';
+
+        return $ordered;
+    }
+
+    protected function clearApplicationCache(): void
+    {
+        Artisan::call('cache:clear');
+        Artisan::call('config:clear');
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use Google\Service\Drive\DriveFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Google\Client as GoogleClient;
 use Google\Service\Drive as GoogleDrive;
@@ -156,6 +157,7 @@ class BackupManager
             . "-x 'storage/app/backups/*' "
             . "-x 'storage/app/backup-tmp/*' "
             . "-x 'storage/app/public/*' "
+            . "-x '.env' "
             . "2>&1",
             escapeshellarg(base_path()),
             escapeshellarg($filePath)
@@ -472,14 +474,16 @@ class BackupManager
             throw new \Exception('Database restore failed: SQL backup file is missing or empty.');
         }
 
+        $backupContainsUsers = $this->sqlBackupContainsUsersTable($filePath);
+
         $command = sprintf(
-            'mysql --host=%s --port=%s --protocol=TCP --user=%s --password=%s --default-character-set=utf8mb4 --binary-mode=1 --force %s < %s',
+            '(printf %%s\n "SET NAMES utf8mb4;" "SET FOREIGN_KEY_CHECKS=0;" "SET UNIQUE_CHECKS=0;" "SET SQL_MODE=NO_AUTO_VALUE_ON_ZERO;"; cat %s; printf %%s\n "SET FOREIGN_KEY_CHECKS=1;" "SET UNIQUE_CHECKS=1;") | mysql --host=%s --port=%s --protocol=TCP --user=%s --password=%s --default-character-set=utf8mb4 --binary-mode=1 %s 2>&1',
+            escapeshellarg($filePath),
             escapeshellarg(env('DB_HOST', '127.0.0.1')),
             escapeshellarg(env('DB_PORT', '3306')),
             escapeshellarg(env('DB_USERNAME')),
             escapeshellarg(env('DB_PASSWORD')),
-            escapeshellarg(env('DB_DATABASE')),
-            escapeshellarg($filePath)
+            escapeshellarg(env('DB_DATABASE'))
         );
 
         [$exitCode, $output] = $this->runShellCommandWithHeartbeat($command, $progressCallback);
@@ -488,9 +492,58 @@ class BackupManager
             throw new \Exception('Database restore failed: ' . $this->commandOutputMessage([$output]));
         }
 
+        $this->verifyUsersTableRestored($backupContainsUsers);
+
         $message = trim($output);
 
         return $message === '' ? null : 'Database restored with warnings: ' . mb_substr($message, 0, 600);
+    }
+
+    protected function sqlBackupContainsUsersTable(string $filePath): bool
+    {
+        $handle = fopen($filePath, 'rb');
+
+        if ($handle === false) {
+            return false;
+        }
+
+        while (!feof($handle)) {
+            $chunk = fread($handle, 1024 * 1024);
+
+            if ($chunk === false || $chunk === '') {
+                break;
+            }
+
+            if (preg_match('/(INSERT INTO|CREATE TABLE)\s+`?users`?\b/i', $chunk)) {
+                fclose($handle);
+
+                return true;
+            }
+        }
+
+        fclose($handle);
+
+        return false;
+    }
+
+    protected function verifyUsersTableRestored(bool $backupContainsUsers): void
+    {
+        if (!$backupContainsUsers) {
+            return;
+        }
+
+        try {
+            $userCount = (int) DB::table('users')->count();
+        } catch (\Throwable $e) {
+            throw new \Exception('Database restore finished but users table could not be verified: ' . $e->getMessage());
+        }
+
+        if ($userCount === 0) {
+            throw new \Exception(
+                'Database restore finished but users table is empty. '
+                . 'This usually means foreign key constraints blocked table recreation during import.'
+            );
+        }
     }
 
     protected function runShellCommandWithHeartbeat(string $command, ?callable $progressCallback = null): array
@@ -552,9 +605,10 @@ class BackupManager
         }
 
         $command = sprintf(
-            'unzip -oq %s -d %s',
+            'unzip -oq %s -d %s -x %s',
             escapeshellarg($filePath),
-            escapeshellarg(base_path())
+            escapeshellarg(base_path()),
+            escapeshellarg('.env')
         );
 
         [$exitCode, $output] = $this->runShellCommandWithHeartbeat($command, $progressCallback);
