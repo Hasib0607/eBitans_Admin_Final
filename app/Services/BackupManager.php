@@ -482,6 +482,19 @@ class BackupManager
             escapeshellarg($filePath)
         );
 
+        [$exitCode, $output] = $this->runShellCommandWithHeartbeat($command, $progressCallback);
+
+        if ($exitCode !== 0) {
+            throw new \Exception('Database restore failed: ' . $this->commandOutputMessage([$output]));
+        }
+
+        $message = trim($output);
+
+        return $message === '' ? null : 'Database restored with warnings: ' . mb_substr($message, 0, 600);
+    }
+
+    protected function runShellCommandWithHeartbeat(string $command, ?callable $progressCallback = null): array
+    {
         $process = Process::fromShellCommandline($command);
         $process->setTimeout(null);
         $process->setIdleTimeout(null);
@@ -509,13 +522,7 @@ class BackupManager
         $output = $this->appendCommandOutput($output, $process->getIncrementalOutput());
         $output = $this->appendCommandOutput($output, $process->getIncrementalErrorOutput());
 
-        if (!$process->isSuccessful()) {
-            throw new \Exception('Database restore failed: ' . $this->commandOutputMessage([$output]));
-        }
-
-        $message = trim($output);
-
-        return $message === '' ? null : 'Database restored with warnings: ' . mb_substr($message, 0, 600);
+        return [$process->getExitCode() ?? 1, $output];
     }
 
     protected function appendCommandOutput(string $current, string $chunk): string
@@ -538,19 +545,27 @@ class BackupManager
         return mb_substr($message, 0, 1000);
     }
 
-    public function restoreZipToBasePath(string $filePath): void
+    public function restoreZipToBasePath(string $filePath, ?callable $progressCallback = null): ?string
     {
+        if (!file_exists($filePath) || filesize($filePath) <= 0) {
+            throw new \Exception('Zip restore failed: backup file is missing or empty.');
+        }
+
         $command = sprintf(
-            'unzip -oq %s -d %s 2>&1',
+            'unzip -oq %s -d %s',
             escapeshellarg($filePath),
             escapeshellarg(base_path())
         );
 
-        exec($command, $output, $resultCode);
+        [$exitCode, $output] = $this->runShellCommandWithHeartbeat($command, $progressCallback);
 
-        if ($resultCode !== 0) {
-            throw new \Exception('Zip restore failed.');
+        if ($exitCode > 1) {
+            throw new \Exception('Zip restore failed: ' . $this->commandOutputMessage([$output]));
         }
+
+        $message = trim($output);
+
+        return $exitCode === 1 || $message !== '' ? 'Zip restored with warnings: ' . mb_substr($message ?: 'unzip finished with warnings.', 0, 600) : null;
     }
 
     public function uploadLatestSelectedToDrive(array $types, ?callable $progressCallback = null): array

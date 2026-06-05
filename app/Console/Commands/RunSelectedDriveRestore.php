@@ -105,7 +105,21 @@ class RunSelectedDriveRestore extends Command
                         }
                     );
                 } else {
-                    $manager->restoreZipToBasePath($targetPath);
+                    $restoreMessage = $manager->restoreZipToBasePath(
+                        $targetPath,
+                        function (int $elapsedSeconds) use ($manager, $type, $restorePhaseStart, $restorePhaseEnd) {
+                            $progressRange = max($restorePhaseEnd - $restorePhaseStart, 1);
+                            $elapsedProgress = min($progressRange - 1, (int) floor($elapsedSeconds / 15));
+                            $elapsedText = gmdate($elapsedSeconds >= 3600 ? 'H\h i\m s\s' : 'i\m s\s', $elapsedSeconds);
+
+                            $manager->setStatus(
+                                'restore-drive',
+                                'running',
+                                $restorePhaseStart + max(0, $elapsedProgress),
+                                'Restoring ' . ucfirst($type) . ' backup... ' . $elapsedText . ' elapsed'
+                            );
+                        }
+                    );
                 }
 
                 $manager->setStatus(
