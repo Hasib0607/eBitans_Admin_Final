@@ -495,18 +495,13 @@ class BackupManager
                 $progressCallback
             );
 
-            if ($exitCode !== 0) {
-                throw new \Exception('Database restore failed: ' . $this->sanitizeMysqlErrorMessage($output));
-            }
-
+            $this->assertMysqlImportSucceeded($exitCode, $output);
             $this->verifyUsersTableRestored($backupContainsUsers);
         } finally {
             $this->cleanupTemporaryFiles($temporaryFiles);
         }
 
-        $message = $this->sanitizeMysqlErrorMessage($output ?? '');
-
-        return $message === '' ? null : 'Database restored with warnings: ' . mb_substr($message, 0, 600);
+        return null;
     }
 
     protected function normalizeDatabaseBackupFile(string $filePath, array &$temporaryFiles): string
@@ -721,7 +716,7 @@ class BackupManager
         $defaultsFile = $this->createMysqlClientDefaultsFile($temporaryFiles);
 
         $command = sprintf(
-            'cat %s %s %s | %s --defaults-extra-file=%s --protocol=TCP --binary-mode=1 --max-allowed-packet=512M --force %s 2>&1',
+            'cat %s %s %s | %s --defaults-extra-file=%s --protocol=TCP --binary-mode=1 --max-allowed-packet=512M --show-warnings %s 2>&1',
             escapeshellarg($preamblePath),
             escapeshellarg($sqlFilePath),
             escapeshellarg($epiloguePath),
@@ -821,6 +816,70 @@ class BackupManager
         return '"' . str_replace(['\\', '"'], ['\\\\', '\\"'], $value) . '"';
     }
 
+    protected function assertMysqlImportSucceeded(int $exitCode, string $output): void
+    {
+        $errors = $this->extractMysqlErrors($output);
+
+        if ($exitCode === 0 && empty($errors)) {
+            return;
+        }
+
+        $this->logDatabaseRestoreFailure($output, $exitCode, $errors);
+
+        throw new \Exception('Database restore failed: ' . $this->formatMysqlImportFailure($output, $exitCode, $errors));
+    }
+
+    protected function extractMysqlErrors(string $output): array
+    {
+        if (!preg_match_all('/ERROR\s+\d+\s+\([^\)]+\)(?:\s+at\s+line\s+\d+)?:[^\r\n]*/i', $output, $matches)) {
+            return [];
+        }
+
+        $errors = [];
+
+        foreach ($matches[0] as $error) {
+            $cleanError = trim((string) preg_replace('/[^\x09\x0A\x0D\x20-\x7E]/', '', $error));
+
+            if ($cleanError !== '') {
+                $errors[] = $cleanError;
+            }
+        }
+
+        return $errors;
+    }
+
+    protected function formatMysqlImportFailure(string $output, int $exitCode, array $errors = []): string
+    {
+        if (!empty($errors)) {
+            $recentErrors = array_slice($errors, -3);
+
+            return implode(' | ', $recentErrors);
+        }
+
+        if ($exitCode !== 0) {
+            return 'MySQL client exited with code ' . $exitCode . '. ' . $this->sanitizeMysqlErrorMessage($output);
+        }
+
+        return $this->sanitizeMysqlErrorMessage($output);
+    }
+
+    protected function logDatabaseRestoreFailure(string $output, int $exitCode, array $errors = []): void
+    {
+        $logPath = storage_path('logs/backup-restore-errors.log');
+        $payload = [
+            'time' => now()->toDateTimeString(),
+            'exit_code' => $exitCode,
+            'errors' => $errors,
+            'output_tail' => mb_substr(trim($output), -8000),
+        ];
+
+        @file_put_contents(
+            $logPath,
+            json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) . PHP_EOL . str_repeat('-', 80) . PHP_EOL,
+            FILE_APPEND
+        );
+    }
+
     protected function sanitizeMysqlErrorMessage(string $output): string
     {
         $output = trim($output);
@@ -829,8 +888,10 @@ class BackupManager
             return 'No command output returned. Please verify MySQL client, DB credentials, and database permissions.';
         }
 
-        if (preg_match('/ERROR\s+\d+\s+\([^\)]+\)(?:\s+at\s+line\s+\d+)?:[^\r\n]*/i', $output, $matches)) {
-            return preg_replace('/[^\x09\x0A\x0D\x20-\x7E]/', '', $matches[0]) ?: 'MySQL import failed.';
+        $errors = $this->extractMysqlErrors($output);
+
+        if (!empty($errors)) {
+            return implode(' | ', array_slice($errors, -3));
         }
 
         $clean = preg_replace('/[^\x09\x0A\x0D\x20-\x7E]/', '', $output);
@@ -928,7 +989,7 @@ class BackupManager
             return $current;
         }
 
-        return mb_substr($current . $chunk, -4000);
+        return mb_substr($current . $chunk, -32000);
     }
 
     protected function commandOutputMessage(array $output): string
@@ -953,13 +1014,17 @@ class BackupManager
 
         [$exitCode, $output] = $this->runShellCommandWithHeartbeat($command, $progressCallback);
 
-        if ($exitCode > 1) {
-            throw new \Exception('Zip restore failed: ' . $this->commandOutputMessage([$output]));
+        if ($exitCode !== 0) {
+            throw new \Exception('Zip restore failed: ' . $this->sanitizeMysqlErrorMessage($output));
         }
 
         $message = trim($output);
 
-        return $exitCode === 1 || $message !== '' ? 'Zip restored with warnings: ' . mb_substr($message ?: 'unzip finished with warnings.', 0, 600) : null;
+        if ($message !== '') {
+            throw new \Exception('Zip restore failed: ' . mb_substr($message, 0, 1000));
+        }
+
+        return null;
     }
 
     public function uploadLatestSelectedToDrive(array $types, ?callable $progressCallback = null): array

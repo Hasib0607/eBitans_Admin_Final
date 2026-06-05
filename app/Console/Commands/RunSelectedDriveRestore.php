@@ -88,10 +88,8 @@ class RunSelectedDriveRestore extends Command
                     'Restoring ' . ucfirst($type) . ' backup...'
                 );
 
-                $restoreMessage = null;
-
                 if ($type === 'database') {
-                    $restoreMessage = $manager->restoreDatabaseFromFile(
+                    $manager->restoreDatabaseFromFile(
                         $targetPath,
                         function (int $elapsedSeconds) use ($manager, $restorePhaseStart, $restorePhaseEnd) {
                             $progressRange = max($restorePhaseEnd - $restorePhaseStart, 1);
@@ -107,7 +105,7 @@ class RunSelectedDriveRestore extends Command
                         }
                     );
                 } else {
-                    $restoreMessage = $manager->restoreZipToBasePath(
+                    $manager->restoreZipToBasePath(
                         $targetPath,
                         function (int $elapsedSeconds) use ($manager, $type, $restorePhaseStart, $restorePhaseEnd) {
                             $progressRange = max($restorePhaseEnd - $restorePhaseStart, 1);
@@ -128,7 +126,7 @@ class RunSelectedDriveRestore extends Command
                     'restore-drive',
                     'running',
                     $restorePhaseEnd,
-                    $restoreMessage ?: ucfirst($type) . ' backup restored successfully.'
+                    ucfirst($type) . ' backup restored successfully.'
                 );
                 $completedPhases++;
             }

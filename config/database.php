@@ -5,8 +5,18 @@ use Illuminate\Support\Str;
 $databaseUrl = env('DATABASE_URL');
 $pgsqlDatabaseUrl = $databaseUrl;
 
-if (is_string($pgsqlDatabaseUrl) && Str::startsWith($pgsqlDatabaseUrl, ['postgres://', 'postgresql://', 'pgsql://'])) {
-    $pgsqlDatabaseUrl = preg_replace('/([?&]charset=)utf8mb4/i', '$1UTF8', $pgsqlDatabaseUrl);
+if (is_string($pgsqlDatabaseUrl)) {
+    $pgsqlDatabaseUrl = preg_replace(
+        '/([?&](?:charset|client_encoding)=)utf8mb4\b/i',
+        '$1UTF8',
+        $pgsqlDatabaseUrl
+    );
+}
+
+$pgsqlCharset = (string) env('DB_CHARSET', 'UTF8');
+
+if (in_array(strtolower($pgsqlCharset), ['utf8mb4', 'utf8mb4_unicode_ci'], true)) {
+    $pgsqlCharset = 'UTF8';
 }
 
 return [
@@ -81,7 +91,7 @@ return [
             'database' => env('DB_DATABASE', 'forge'),
             'username' => env('DB_USERNAME', 'forge'),
             'password' => env('DB_PASSWORD', ''),
-            'charset' => 'UTF8',
+            'charset' => $pgsqlCharset,
             'prefix' => '',
             'prefix_indexes' => true,
             'search_path' => 'public',
