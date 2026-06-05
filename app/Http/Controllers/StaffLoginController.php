@@ -11,7 +11,10 @@ use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Auth;
+use App\Models\SuperAdminSetting;
 use App\Models\Superstaff;
+use App\Models\SuperstaffAllowedIp;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Validator;
 
 class StaffLoginController extends Controller
@@ -127,19 +130,25 @@ class StaffLoginController extends Controller
             } else {
                 $superstaff = Superstaff::where('username', $request->username)->where("status", "active")->first();
                 if (isset($superstaff)) {
-                    // Get whitelisted IPs from .env (split into an array)
-                    $whitelistedIPs = explode(',', env('SUPERSTAFF_WHITELISTED_IPS', ''));
-
-                    // Trim whitespace from each IP (in case of formatting issues)
-                    $whitelistedIPs = array_map('trim', $whitelistedIPs);
-
-                    // Get the user's IP (handles proxies automatically)
                     $userIp = $request->ip();
+                    $restrictionEnabled = true;
 
-                    // Check if IP is allowed
-                    if (!in_array($userIp, $whitelistedIPs)) {
-                        Session::flash("error", "Your IP ($userIp) is not allowed.");
-                        return back();
+                    if (Schema::hasTable('super_admin_settings')) {
+                        $restrictionEnabled = SuperAdminSetting::getValue('superstaff_ip_restriction_enabled', '1') !== '0';
+                    }
+
+                    if ($restrictionEnabled) {
+                        if (!Schema::hasTable('superstaff_allowed_ips')) {
+                            Session::flash("error", "Super staff IP access table is missing. Please run database migration.");
+                            return back();
+                        }
+
+                        $isAllowedIp = SuperstaffAllowedIp::where('ip_address', $userIp)->exists();
+
+                        if (!$isAllowedIp) {
+                            Session::flash("error", "Your IP ($userIp) is not allowed.");
+                            return back();
+                        }
                     }
 
                     if (Hash::check($request->password, $superstaff->password)) {

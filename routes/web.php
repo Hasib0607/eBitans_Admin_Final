@@ -1500,6 +1500,12 @@ Route::middleware(['auth', 'superadmin'])->prefix('/superadmin/settings')->name(
     Route::get('/store-static-data', [SuperAdminController::class, 'getStoreStaticData'])->name('store.static.data');
     Route::post('/save/store-static-data', [SuperAdminController::class, 'saveStoreStaticData'])->name('save.store.static.data');
 
+    Route::get('/superstaff-allowed-ips', [SuperAdminController::class, 'superstaffAllowedIps'])->name('superstaff_allowed_ips.index');
+    Route::post('/superstaff-allowed-ips/restriction', [SuperAdminController::class, 'updateSuperstaffIpRestriction'])->name('superstaff_allowed_ips.restriction');
+    Route::post('/superstaff-allowed-ips', [SuperAdminController::class, 'storeSuperstaffAllowedIp'])->name('superstaff_allowed_ips.store');
+    Route::put('/superstaff-allowed-ips/{id}', [SuperAdminController::class, 'updateSuperstaffAllowedIp'])->name('superstaff_allowed_ips.update');
+    Route::delete('/superstaff-allowed-ips/{id}', [SuperAdminController::class, 'deleteSuperstaffAllowedIp'])->name('superstaff_allowed_ips.destroy');
+
 });
 
 // Common things

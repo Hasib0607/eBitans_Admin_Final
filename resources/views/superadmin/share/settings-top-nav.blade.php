@@ -20,6 +20,12 @@
                             <img src="{{URL::to('/')}}/img/cubes.png"> <br> Store Data
                         </a>
                     </li>
+
+                    <li class="breadcrumb-item @if(request()->routeIs('super_admin.settings.superstaff_allowed_ips.*')) active @endif">
+                        <a href="{{route('super_admin.settings.superstaff_allowed_ips.index')}}">
+                            <img src="{{URL::to('/')}}/img/cubes.png"> <br> Staff IPs
+                        </a>
+                    </li>
                 </ol>
             </nav>
         </div>

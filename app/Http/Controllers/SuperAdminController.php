@@ -39,6 +39,7 @@ use App\Models\Staff;
 use App\Models\Store;
 use App\Models\StorePurchaseHistory;
 use App\Models\SuperAdminSetting;
+use App\Models\SuperstaffAllowedIp;
 use App\Models\Superrole;
 use App\Models\Supersetting;
 use App\Models\Superstaff;
@@ -6190,6 +6191,75 @@ class SuperAdminController extends Controller
         foreach ($settings as $key => $value) {
             SuperAdminSetting::setValue($key, $value, auth()->id() ?? null);
         }
+
+        return back();
+    }
+
+    public function superstaffAllowedIps()
+    {
+        $ips = SuperstaffAllowedIp::latest()->paginate(20);
+        $restrictionEnabled = SuperAdminSetting::getValue('superstaff_ip_restriction_enabled', '1') !== '0';
+
+        return view('superadmin.setting.superstaff-allowed-ips', compact('ips', 'restrictionEnabled'));
+    }
+
+    public function updateSuperstaffIpRestriction(Request $request)
+    {
+        SuperAdminSetting::setValue(
+            'superstaff_ip_restriction_enabled',
+            $request->has('enabled') ? '1' : '0',
+            auth()->id() ?? null
+        );
+
+        Session::flash('success', 'Super staff IP restriction setting updated successfully.');
+
+        return back();
+    }
+
+    public function storeSuperstaffAllowedIp(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'ip_address' => 'required|ip|max:45|unique:superstaff_allowed_ips,ip_address',
+        ]);
+
+        SuperstaffAllowedIp::create([
+            'name' => $request->name,
+            'ip_address' => $request->ip_address,
+            'created_by' => auth()->id(),
+            'updated_by' => auth()->id(),
+        ]);
+
+        Session::flash('success', 'Super staff allowed IP added successfully.');
+
+        return back();
+    }
+
+    public function updateSuperstaffAllowedIp(Request $request, $id)
+    {
+        $ip = SuperstaffAllowedIp::findOrFail($id);
+
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'ip_address' => 'required|ip|max:45|unique:superstaff_allowed_ips,ip_address,' . $ip->id,
+        ]);
+
+        $ip->update([
+            'name' => $request->name,
+            'ip_address' => $request->ip_address,
+            'updated_by' => auth()->id(),
+        ]);
+
+        Session::flash('success', 'Super staff allowed IP updated successfully.');
+
+        return back();
+    }
+
+    public function deleteSuperstaffAllowedIp($id)
+    {
+        SuperstaffAllowedIp::findOrFail($id)->delete();
+
+        Session::flash('success', 'Super staff allowed IP deleted successfully.');
 
         return back();
     }
