@@ -327,6 +327,51 @@
             let successCount = 0;
             let totalCount = 0;
 
+            function formatUploadError(message, xhr) {
+                if (xhr && xhr.status === 413) {
+                    return 'Upload failed: selected file is larger than the server upload limit. Please upload a smaller image or increase nginx client_max_body_size.';
+                }
+
+                if (xhr && xhr.responseJSON) {
+                    if (xhr.responseJSON.error && xhr.responseJSON.error.message) {
+                        return xhr.responseJSON.error.message;
+                    }
+
+                    if (xhr.responseJSON.message) {
+                        return xhr.responseJSON.message;
+                    }
+
+                    if (Array.isArray(xhr.responseJSON)) {
+                        return xhr.responseJSON.join('\n');
+                    }
+                }
+
+                if (message && typeof message === 'object') {
+                    if (message.error && message.error.message) {
+                        return message.error.message;
+                    }
+
+                    if (message.message) {
+                        return message.message;
+                    }
+
+                    if (Array.isArray(message)) {
+                        return message.join('\n');
+                    }
+                }
+
+                return message || 'Upload failed. Please try again with another image.';
+            }
+
+            function showUploadError(file, message, xhr) {
+                var errorMessage = formatUploadError(message, xhr);
+                if (file.previewElement) {
+                    $(file.previewElement).find('[data-dz-errormessage]').text(errorMessage);
+                }
+
+                return errorMessage;
+            }
+
             this.on('addedfile', function () {
                 totalCount++;
             });
@@ -337,23 +382,12 @@
                     successCount++;
                     loadFolders();
                 } else {
-                    if (typeof response === 'object' && response.error) {
-                        this.defaultOptions.error(file, response.error.message);
-                    } else {
-                        this.defaultOptions.error(file, response.join('\n'));
-                    }
+                    this.defaultOptions.error(file, showUploadError(file, response));
                 }
             });
 
             this.on('error', function (file, message, xhr) {
-                if (!xhr || xhr.status !== 413) {
-                    return;
-                }
-
-                var errorMessage = 'Upload failed: selected file is larger than the server upload limit. Please upload a smaller image or increase nginx client_max_body_size.';
-                if (file.previewElement) {
-                    $(file.previewElement).find('[data-dz-errormessage]').text(errorMessage);
-                }
+                showUploadError(file, message, xhr);
             });
 
             //Handle when all files in the queue are done
