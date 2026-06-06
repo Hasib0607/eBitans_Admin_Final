@@ -404,7 +404,8 @@
             });
         },
         headers: {
-            'Authorization': 'Bearer ' + getUrlParam('token')
+            'Authorization': 'Bearer ' + getUrlParam('token'),
+            'X-CSRF-TOKEN': $('input[name="_token"]').val()
         },
         acceptedFiles: "{{ implode(',', $helper->availableMimeTypes()) }}",
         maxFilesize: ({{ $helper->maxUploadSize() }} / 1000)
