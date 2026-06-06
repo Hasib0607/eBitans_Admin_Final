@@ -37,12 +37,11 @@
 
 
             <td>
-                    <?php
-                    $comments = DB::table('client_activitie_comments')
-                        ->where('store_id', $client->storeId ?? '')
-                        ->orderBy('updated_at', 'DESC')
-                        ->get();
-                    ?>
+                @php
+                    $comments = $client->follow_up_comments ?? collect();
+                    $activeStore = $client->active_store ?? $client->getStore;
+                    $activeCustomer = $client->active_customer ?? $client->customer;
+                @endphp
 
                 @if ($comments)
                     <!-- Modal -->
@@ -55,9 +54,9 @@
                                      style="background-color: black; color:wheat;padding: 6px 25px 0px 25px;">
                                     <h5 class="modal-title"
                                         id="exampleModalLabelClient">
-                                        <a href="http://{{ $client->url ?? 'Unauthorized' }}"
+                                        <a href="http://{{ $activeStore->url ?? 'Unauthorized' }}"
                                            target="_blank">
-                                            {{ $client->storeName ?? 'Unauthorized' }}
+                                            {{ $activeStore->name ?? 'Unauthorized' }}
                                         </a>
                                         <span style="font-size: 14px;">
                                                 ({{ $client->name ?? 'Name not found' }}
@@ -87,7 +86,7 @@
                                                 <input type="hidden" name="user_id"
                                                        value="{{ $client->id ?? 'empty' }}">
                                                 <input type="hidden" name="store_id"
-                                                       value="{{ $client->storeId ?? null }}">
+                                                       value="{{ $activeStore->id ?? null }}">
                                             </div>
 
                                             <div class="row">
@@ -219,7 +218,7 @@
                     <!----Modal End---->
                 @endif
 
-                <a style="background-color: {{ $comments !='[]'?'':'red' }};pointer-events: {{ ($client->storeName??'') !=''?'':'none' }}"
+                <a style="background-color: {{ $comments->isNotEmpty()?'':'red' }};pointer-events: {{ ($activeStore->name??'') !=''?'':'none' }}"
                    href="javascript:void(0)" data-bs-toggle="modal"
                    class="btn btn-info btn-sm"
                    data-bs-target="#AnalyticesCommentModal{{ $key }}"
@@ -229,15 +228,10 @@
             </td>
 
 
-                <?php
-                $customer = DB::table('customers')
-                    ->where('uid', $client->id)
-                    ->first();
-
-                $str = DB::table('stores')
-                    ->where('id', $customer->active_store ?? 0)
-                    ->first();
-                ?>
+            @php
+                $customer = $activeCustomer;
+                $str = $activeStore;
+            @endphp
 
             <td>
                 <a style="display: block;font-size: 14px;color:{{ $str->name?? '#ff5733;'}}"
@@ -280,7 +274,7 @@
             </td>
             @if (Auth::user()->type == 'superstaff')
                 @php
-                    $staffID = \App\Models\User::getStaff($client->customerInfo->staff_id ?? null);
+                    $staffID = $client->customerInfo->staff->uid ?? null;
                 @endphp
                 <td>
                     @if(is_null($client->customerInfo) || (isset($staffID) && Auth::user()->id == $staffID))
@@ -309,7 +303,7 @@
                 <a href="{{ URL::to('/') }}/client/view/{{ $client->id }}"
                    class="btn btn-info" target="_blank">View</a>
 
-                @if ((Auth::user()->type == 'superstaff' || Auth::user()->type == 'superadmin') && \App\Models\User::storeCount($client->id) == 0)
+                @if ((Auth::user()->type == 'superstaff' || Auth::user()->type == 'superadmin') && ($client->stores_count ?? 0) == 0)
                     <a href="{{ route('superstaff.access.admin', ['id' => $client->id]) }}"
                        class="btn btn-danger">Create Store</a>
                 @endif

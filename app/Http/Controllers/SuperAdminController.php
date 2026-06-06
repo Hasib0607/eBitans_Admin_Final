@@ -148,12 +148,17 @@ class SuperAdminController extends Controller
 
             $clientQuery = User::with([
                 'customerInfo',
+                'customerInfo.staff',
+                'customer',
+                'customer.getStore',
+                'getStore',
                 'addonOrder' => function ($query) {
                     $query->select('id', 'user_id', 'status');
                 }
             ])
                 ->whereIn('type', ['admin', 'affiliate', 'dropshipper'])
                 ->withCount([
+                    'stores',
                     'addonOrder as complete_orders_count' => function ($query) {
                         $query->where('status', 'complete');
                     }
@@ -176,6 +181,7 @@ class SuperAdminController extends Controller
             $data['clientsExport'] = [];
 
             $data['clients'] = $clientQuery->orderBy('id', 'DESC')->paginate(10);
+            $this->attachClientFollowUpComments($data['clients']);
 
             $data['staff'] = Superstaff::where("status", "active")->select("id", "uid", "name", "new_commission", "renew_commission", "setup_commission")->get();
             $data['categories'] = BusinessCategory::with('subcategories')->whereNull('parent_id')->get();
@@ -1018,11 +1024,12 @@ class SuperAdminController extends Controller
             $search = $request->search;
             $idSearch = $request->idSearch;
 
-            $cacheKey = 'clients_search_' . md5($search . '_' . $idSearch . '_' . $request->get('page', 1));
+            $cacheKey = 'clients_search_v2_' . md5($search . '_' . $idSearch . '_' . $request->get('page', 1));
 
             $data['clients'] = Cache::remember($cacheKey, now()->addMinutes(5), function () use ($search, $idSearch) {
-                $clientQuery = User::with(['customerInfo', 'getStore'])
-                    ->whereIn('type', ['admin', 'affiliate', 'dropshipper']);
+                $clientQuery = User::with(['customerInfo.staff', 'customer', 'customer.getStore', 'getStore'])
+                    ->whereIn('type', ['admin', 'affiliate', 'dropshipper'])
+                    ->withCount('stores');
 
                 if (!empty($search)) {
                     if ($idSearch == "true") {
@@ -1044,11 +1051,37 @@ class SuperAdminController extends Controller
 
                 return $clientQuery->orderBy('id', 'DESC')->paginate(10);
             });
+            $this->attachClientFollowUpComments($data['clients']);
 
             return view('superadmin.clientSearch', $data);
         } else {
             return redirect()->route('superadmin.index');
         }
+    }
+
+    private function attachClientFollowUpComments($clients): void
+    {
+        $storeIds = $clients->getCollection()
+            ->map(function ($client) {
+                return optional($client->getStore)->id ?: optional($client->customer)->active_store;
+            })
+            ->filter()
+            ->unique()
+            ->values();
+
+        $commentsByStore = $storeIds->isEmpty()
+            ? collect()
+            : ClientActivitieComments::whereIn('store_id', $storeIds)
+                ->orderBy('updated_at', 'DESC')
+                ->get()
+                ->groupBy('store_id');
+
+        $clients->getCollection()->each(function ($client) use ($commentsByStore) {
+            $storeId = optional($client->getStore)->id ?: optional($client->customer)->active_store;
+            $client->setAttribute('active_customer', $client->customer);
+            $client->setAttribute('active_store', optional($client->customer)->getStore ?: $client->getStore);
+            $client->setAttribute('follow_up_comments', $commentsByStore->get($storeId, collect()));
+        });
     }
 
     public function clientlistSearchByfollowUpDate(Request $request)
