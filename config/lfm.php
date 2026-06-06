@@ -110,7 +110,7 @@ return [
 
     'alphanumeric_directory' => false,
 
-    'should_validate_size' => false,
+    'should_validate_size' => true,
 
     'should_validate_mime' => true,
 
