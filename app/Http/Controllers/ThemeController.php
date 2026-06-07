@@ -131,6 +131,11 @@ class ThemeController extends Controller
 
         /* find template and design */
         $template = Template::find($id);
+        if (!$template) {
+            Session::flash('error', 'Theme not found.');
+            return redirect('/design/theme');
+        }
+
         $design = Design::where('store_id', $store_id)->first();
 
         if (isset($design)) {
@@ -174,7 +179,7 @@ class ThemeController extends Controller
         $design->save();
 
         Session::flash('message', 'Theme Set Successfully.');
-        return back();
+        return redirect('/design/theme');
     }
 
     public function themecustomize()
