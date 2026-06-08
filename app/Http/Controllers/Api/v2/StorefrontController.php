@@ -41,7 +41,7 @@ class StorefrontController extends Controller
                 return response()->json(['status' => false, 'message' => 'Store not found!'], 404);
             }
 
-            $categories = $this->getCategoriesWithCounts($store->id);
+            $categories = $this->getCategoriesForStore($store->id, $request->boolean('include_counts'));
             $modules = $this->getModules($store->id);
 
             $payload = [
@@ -117,7 +117,7 @@ class StorefrontController extends Controller
 
                 case 'feature_category':
                 case 'category':
-                    $categories = $this->getCategoriesWithCounts($store->id);
+                    $categories = $this->getCategoriesForStore($store->id, $request->boolean('include_counts'));
                     $data['category'] = CategoryResource::collection($categories['categories'])->resolve($request);
                     break;
 
@@ -336,11 +336,13 @@ class StorefrontController extends Controller
         $version = app(StorefrontCache::class)->version($storeId);
         $sections = $this->requestedSections($request);
         $fields = $this->requestedProductFields($request) ?? [];
+        $includeCounts = $request->boolean('include_counts') ? 'counts' : 'no-counts';
 
         return 'storefront:home:' . $storeId
             . ':v' . $version
             . ':sections:' . md5(implode(',', $sections))
-            . ':fields:' . md5(implode(',', $fields));
+            . ':fields:' . md5(implode(',', $fields))
+            . ':' . $includeCounts;
     }
 
     private function getMenu(int $storeId)
@@ -382,9 +384,12 @@ class StorefrontController extends Controller
         return Brand::where('store_id', $storeId)->get(['id', 'name', 'image']);
     }
 
-    private function getCategoriesWithCounts(int $storeId): array
+    private function getCategoriesForStore(int $storeId, bool $includeCounts = false): array
     {
-        $counts = $this->getProductCategoryCounts($storeId);
+        $counts = $includeCounts ? $this->getProductCategoryCounts($storeId) : [
+            'category' => [],
+            'subcategory' => [],
+        ];
 
         $categories = Category::where('store_id', $storeId)
             ->where('parent', 0)
@@ -756,11 +761,39 @@ class StorefrontController extends Controller
         $response = response()->json($this->withMetrics($request, $payload, $metrics));
 
         if ($request->boolean('debug')) {
-            return $response->header('Cache-Control', 'no-store');
+            $response->header('Cache-Control', 'no-store');
+
+            return $this->gzipResponseIfSupported($request, $response);
         }
 
-        return $response
+        $response
             ->header('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300')
             ->header('Vary', 'Accept-Encoding');
+
+        return $this->gzipResponseIfSupported($request, $response);
+    }
+
+    private function gzipResponseIfSupported(Request $request, JsonResponse $response): JsonResponse
+    {
+        if (!function_exists('gzencode') || !str_contains($request->header('Accept-Encoding', ''), 'gzip')) {
+            return $response;
+        }
+
+        if ($response->headers->has('Content-Encoding')) {
+            return $response;
+        }
+
+        $compressed = gzencode($response->getContent(), 6);
+
+        if ($compressed === false) {
+            return $response;
+        }
+
+        $response->setContent($compressed);
+        $response->headers->set('Content-Encoding', 'gzip');
+        $response->headers->set('Content-Length', (string) strlen($compressed));
+        $response->headers->set('Vary', 'Accept-Encoding');
+
+        return $response;
     }
 }
