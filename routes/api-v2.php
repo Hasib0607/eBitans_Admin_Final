@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ResponseController;
 use App\Http\Controllers\Api\v2\LoginController;
 use App\Http\Controllers\Api\v2\SubdomainController;
+use App\Http\Controllers\Api\v2\StorefrontController;
 use App\Http\Controllers\Api\v2\OrderController;
 use App\Http\Controllers\Api\v2\UserController;
 use App\Http\Controllers\Api\v2\PaymentPageController;
@@ -235,6 +236,10 @@ Route::group(['prefix' => 'v2'], function () {
     //My code here start
     Route::get('/store/{name}/info', [SubdomainController::class, 'getStore']);
     Route::get('/get-domain/{name}/{section}', [SubdomainController::class, 'getDomainSection']);
+    Route::get('/storefront/bootstrap/{domain}', [StorefrontController::class, 'bootstrap']);
+    Route::get('/storefront/home/{domain}', [StorefrontController::class, 'home']);
+    Route::get('/storefront/product-page/{domain}/{product}', [StorefrontController::class, 'productPage']);
+    Route::get('/storefront/shell/{domain}', [StorefrontController::class, 'shell']);
 
     Route::get('/get/attribute/{store}/{name}', [SubdomainController::class, 'getAttribute']);
     //My code here end
