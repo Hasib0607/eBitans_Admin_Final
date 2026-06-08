@@ -18,6 +18,13 @@ use Illuminate\Support\Facades\Session;
 
 class OtpverifyController extends Controller
 {
+    /**
+     * Super admin accounts cannot use the public forgot-password flow.
+     */
+    private function isPasswordResetBlocked(?User $user): bool
+    {
+        return $user && $user->type === 'superadmin';
+    }
 
     /**
      *
@@ -395,6 +402,11 @@ class OtpverifyController extends Controller
 
 
         if (isset($user)) {
+            if ($this->isPasswordResetBlocked($user)) {
+                Session::flash('message', $errorMsg ?? 'credentials Not Found');
+                return back()->withInput();
+            }
+
             if ($isEmail) {
                 $data = Resetotp::where('email', $reqEmail)->first();
             } else {
@@ -529,6 +541,11 @@ class OtpverifyController extends Controller
             })->first();
 
             if (isset($user)) {
+                if ($this->isPasswordResetBlocked($user)) {
+                    Session::flash('message', 'Try again');
+                    return redirect()->route('login');
+                }
+
                 if ($isEmail) {
                     $data = Resetotp::where('email', Session::get('email'))->first();
                 } else {
@@ -591,6 +608,11 @@ class OtpverifyController extends Controller
                 })->first();
 
                 if (isset($user)) {
+                    if ($this->isPasswordResetBlocked($user)) {
+                        Session::flash('error', 'Something Error');
+                        return redirect()->route('login');
+                    }
+
                     $user->password = Hash::make($request->password);
                     $user->save();
                     if (Session::has('number')) {
