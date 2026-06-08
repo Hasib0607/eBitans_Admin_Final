@@ -9,9 +9,21 @@ use Illuminate\Support\Facades\Schema;
 
 class StorefrontCache
 {
+    public function version(int $storeId): string
+    {
+        return (string) Cache::get($this->versionKey($storeId), '1');
+    }
+
+    public function touchStore(int $storeId): void
+    {
+        Cache::forever($this->versionKey($storeId), (string) now()->getTimestampMs());
+    }
+
     public function forgetStore(int $storeId): void
     {
         $store = Store::find($storeId);
+
+        $this->touchStore($storeId);
 
         Cache::forget("storefront:bootstrap:{$storeId}");
         Cache::forget("storefront:home:{$storeId}");
@@ -53,5 +65,10 @@ class StorefrontCache
             ->map(fn ($domain) => strtolower(trim($domain)))
             ->values()
             ->all();
+    }
+
+    private function versionKey(int $storeId): string
+    {
+        return "storefront:version:{$storeId}";
     }
 }

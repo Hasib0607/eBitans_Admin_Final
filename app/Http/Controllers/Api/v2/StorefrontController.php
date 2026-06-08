@@ -20,6 +20,7 @@ use App\Models\Review;
 use App\Models\Slider;
 use App\Models\Temposition;
 use App\Models\Testimonial;
+use App\Services\Storefront\StorefrontCache;
 use App\Services\Storefront\StorefrontProductPresenter;
 use App\Services\Storefront\StorefrontStoreResolver;
 use Illuminate\Http\JsonResponse;
@@ -77,69 +78,83 @@ class StorefrontController extends Controller
                 return response()->json(['status' => false, 'message' => 'Store not found!'], 404);
             }
 
-            $design = $this->getDesign($store->id);
-            $layout = $this->getActiveLayout($store, $design);
+            if (!$request->boolean('debug')) {
+                $cacheKey = $this->homeCacheKey($store->id, $request);
+                $payload = Cache::remember($cacheKey, now()->addMinutes(5), function () use ($request, $store) {
+                    return $this->buildHomePayload($request, $store);
+                });
 
-            $data = [
-                'layout' => $layout,
-            ];
-
-            foreach ($layout as $section) {
-                switch ($section) {
-                    case 'hero_slider':
-                    case 'slider':
-                        $data['slider'] = SliderResource::collection($this->getSliders($store->id))->resolve($request);
-                        break;
-
-                    case 'banner':
-                        $data['banner'] = BannerResource::collection($this->getBanners($store->id))->resolve($request);
-                        break;
-
-                    case 'feature_category':
-                    case 'category':
-                        $categories = $this->getCategoriesWithCounts($store->id);
-                        $data['category'] = CategoryResource::collection($categories['categories'])->resolve($request);
-                        break;
-
-                    case 'product':
-                        $data['products'] = $this->getCompactProducts($store->id, null, $request);
-                        break;
-
-                    case 'feature_product':
-                        $data['feature_products'] = $this->getCompactProducts($store->id, 'feature', $request);
-                        break;
-
-                    case 'best_sell_product':
-                        $data['best_sell_products'] = $this->getCompactProducts($store->id, 'best_sell', $request);
-                        break;
-
-                    case 'new_arrival':
-                    case 'new_arrival_product':
-                    case 'new_arrival_products':
-                        $data['new_arrival_products'] = $this->getCompactProducts($store->id, 'new_arrival', $request);
-                        break;
-
-                    case 'testimonial':
-                        $data['testimonial'] = TestimonialResource::collection($this->getTestimonials($store->id))->resolve($request);
-                        break;
-
-                    case 'brand':
-                        $data['brand'] = BrandResource::collection($this->getBrands($store->id))->resolve($request);
-                        break;
-                }
+                return $this->storefrontResponse($request, $payload, $metrics);
             }
 
-            $payload = [
-                'status' => true,
-                'message' => 'Success',
-                'store_id' => $store->id,
-                'data' => $data,
-            ];
+            $payload = $this->buildHomePayload($request, $store);
 
             return $this->storefrontResponse($request, $payload, $metrics);
         } catch (\Exception $exception) {
             return serverError();
         }
+    }
+
+    private function buildHomePayload(Request $request, object $store): array
+    {
+        $design = $this->getDesign($store->id);
+        $layout = $this->filterRequestedSections($this->getActiveLayout($store, $design), $request);
+
+        $data = [
+            'layout' => $layout,
+        ];
+
+        foreach ($layout as $section) {
+            switch ($section) {
+                case 'hero_slider':
+                case 'slider':
+                    $data['slider'] = SliderResource::collection($this->getSliders($store->id))->resolve($request);
+                    break;
+
+                case 'banner':
+                    $data['banner'] = BannerResource::collection($this->getBanners($store->id))->resolve($request);
+                    break;
+
+                case 'feature_category':
+                case 'category':
+                    $categories = $this->getCategoriesWithCounts($store->id);
+                    $data['category'] = CategoryResource::collection($categories['categories'])->resolve($request);
+                    break;
+
+                case 'product':
+                    $data['products'] = $this->getCompactProducts($store->id, null, $request);
+                    break;
+
+                case 'feature_product':
+                    $data['feature_products'] = $this->getCompactProducts($store->id, 'feature', $request);
+                    break;
+
+                case 'best_sell_product':
+                    $data['best_sell_products'] = $this->getCompactProducts($store->id, 'best_sell', $request);
+                    break;
+
+                case 'new_arrival':
+                case 'new_arrival_product':
+                case 'new_arrival_products':
+                    $data['new_arrival_products'] = $this->getCompactProducts($store->id, 'new_arrival', $request);
+                    break;
+
+                case 'testimonial':
+                    $data['testimonial'] = TestimonialResource::collection($this->getTestimonials($store->id))->resolve($request);
+                    break;
+
+                case 'brand':
+                    $data['brand'] = BrandResource::collection($this->getBrands($store->id))->resolve($request);
+                    break;
+            }
+        }
+
+        return [
+            'status' => true,
+            'message' => 'Success',
+            'store_id' => $store->id,
+            'data' => $data,
+        ];
     }
 
     public function productPage(Request $request, string $domain, string $product): JsonResponse
@@ -291,6 +306,41 @@ class StorefrontController extends Controller
             $this->getLayout($store),
             fn ($section) => $this->isSectionEnabled($section, $design)
         ));
+    }
+
+    private function filterRequestedSections(array $layout, Request $request): array
+    {
+        $requested = $this->requestedSections($request);
+
+        if (empty($requested)) {
+            return $layout;
+        }
+
+        return array_values(array_filter($layout, fn ($section) => in_array($section, $requested, true)));
+    }
+
+    private function requestedSections(Request $request): array
+    {
+        if (!$request->filled('sections')) {
+            return [];
+        }
+
+        return array_values(array_unique(array_filter(array_map(
+            fn ($section) => $this->normalizeSectionName(trim($section)),
+            explode(',', $request->query('sections'))
+        ))));
+    }
+
+    private function homeCacheKey(int $storeId, Request $request): string
+    {
+        $version = app(StorefrontCache::class)->version($storeId);
+        $sections = $this->requestedSections($request);
+        $fields = $this->requestedProductFields($request) ?? [];
+
+        return 'storefront:home:' . $storeId
+            . ':v' . $version
+            . ':sections:' . md5(implode(',', $sections))
+            . ':fields:' . md5(implode(',', $fields));
     }
 
     private function getMenu(int $storeId)
