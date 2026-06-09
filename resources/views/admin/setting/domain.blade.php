@@ -532,7 +532,7 @@
                                                             </span>
                                                         @if($dm->status == 'Processing')
                                                             <a href="javascript:void(0);"
-                                                               onclick="confirmDomainConnection('{{ route('admin.domain.connect.request', $dm->id) }}')"
+                                                               onclick="confirmDomainConnection('{{ url('/domain/connect/request/domain/' . $dm->id) }}')"
                                                                class="btn btn-primary"
                                                                style="margin-bottom: 0; margin-left: 5px;">
                                                                 Connect Domain
@@ -880,4 +880,3 @@
 
     </script>
 @endpush
-

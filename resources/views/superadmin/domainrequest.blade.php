@@ -101,7 +101,7 @@
                                                            class="btn btn-primary">Processing</a>
                                                     @elseif($dm->status=="Processing")
                                                         <a href="javascript:void(0);"
-                                                           onclick="confirmDomainConnection('{{ route('superadmin.domainrequest.connect.domain', $dm->id) }}')"
+                                                           onclick="confirmDomainConnection('{{ url('/domain/request/connect/domain/' . $dm->id) }}')"
                                                            class="btn btn-primary">
                                                             Connect Domain
                                                         </a>
