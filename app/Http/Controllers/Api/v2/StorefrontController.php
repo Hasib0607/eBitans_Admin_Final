@@ -98,25 +98,29 @@ class StorefrontController extends Controller
     private function buildHomePayload(Request $request, object $store): array
     {
         $design = $this->getDesign($store->id);
-        $layout = $this->filterRequestedSections($this->getActiveLayout($store, $design), $request);
+        $activeLayout = $this->getActiveLayout($store, $design);
+        $sections = $this->requestedSections($request);
+        $sectionsToLoad = empty($sections) ? $activeLayout : $sections;
 
         $data = [
-            'layout' => $layout,
+            'layout' => $activeLayout,
         ];
 
-        foreach ($layout as $section) {
+        foreach ($sectionsToLoad as $section) {
             switch ($section) {
                 case 'hero_slider':
-                case 'slider':
                     $data['slider'] = SliderResource::collection($this->getSliders($store->id))->resolve($request);
                     break;
 
                 case 'banner':
-                    $data['banner'] = BannerResource::collection($this->getBanners($store->id))->resolve($request);
+                    $data['banner'] = BannerResource::collection($this->getBanners($store->id, 0))->resolve($request);
+                    break;
+
+                case 'banner_bottom':
+                    $data['banner_bottom'] = BannerResource::collection($this->getBanners($store->id, 1))->resolve($request);
                     break;
 
                 case 'feature_category':
-                case 'category':
                     $categories = $this->getCategoriesForStore($store->id, $request->boolean('include_counts'));
                     $data['category'] = CategoryResource::collection($categories['categories'])->resolve($request);
                     break;
@@ -134,8 +138,6 @@ class StorefrontController extends Controller
                     break;
 
                 case 'new_arrival':
-                case 'new_arrival_product':
-                case 'new_arrival_products':
                     $data['new_arrival_products'] = $this->getCompactProducts($store->id, 'new_arrival', $request);
                     break;
 
@@ -145,6 +147,10 @@ class StorefrontController extends Controller
 
                 case 'brand':
                     $data['brand'] = BrandResource::collection($this->getBrands($store->id))->resolve($request);
+                    break;
+
+                case 'youtube':
+                    $data['youtube'] = $this->getYoutubeSection($store->id);
                     break;
             }
         }
@@ -308,17 +314,6 @@ class StorefrontController extends Controller
         ));
     }
 
-    private function filterRequestedSections(array $layout, Request $request): array
-    {
-        $requested = $this->requestedSections($request);
-
-        if (empty($requested)) {
-            return $layout;
-        }
-
-        return array_values(array_filter($layout, fn ($section) => in_array($section, $requested, true)));
-    }
-
     private function requestedSections(Request $request): array
     {
         if (!$request->filled('sections')) {
@@ -339,6 +334,7 @@ class StorefrontController extends Controller
         $includeCounts = $request->boolean('include_counts') ? 'counts' : 'no-counts';
 
         return 'storefront:home:' . $storeId
+            . ':schema:v2'
             . ':v' . $version
             . ':sections:' . md5(implode(',', $sections))
             . ':fields:' . md5(implode(',', $fields))
@@ -365,11 +361,25 @@ class StorefrontController extends Controller
             ->get();
     }
 
-    private function getBanners(int $storeId)
+    private function getBanners(int $storeId, ?int $type = null)
     {
         return Banner::where('store_id', $storeId)
             ->where('status', 'active')
+            ->when($type !== null, fn ($query) => $query->where('type', $type))
             ->get();
+    }
+
+    private function getYoutubeSection(int $storeId): array
+    {
+        $headerSetting = $this->getHeaderSetting($storeId);
+
+        if (empty($headerSetting?->youtube_link)) {
+            return [];
+        }
+
+        return [
+            'youtube_link' => $headerSetting->youtube_link,
+        ];
     }
 
     private function getTestimonials(int $storeId)
@@ -677,8 +687,16 @@ class StorefrontController extends Controller
     private function normalizeSectionName(string $section): string
     {
         return match ($section) {
-            'slider', 'hero' => 'hero_slider',
+            'slider', 'sliders', 'hero' => 'hero_slider',
+            'banners' => 'banner',
+            'bottom_banner', 'banner-bottom', 'bottom-banners' => 'banner_bottom',
+            'category', 'categories', 'feature_categories' => 'feature_category',
+            'products' => 'product',
+            'feature_products' => 'feature_product',
+            'best_sell', 'best_sell_products' => 'best_sell_product',
             'new_arrival_product', 'new_arrival_products' => 'new_arrival',
+            'brands' => 'brand',
+            'testimonials' => 'testimonial',
             default => $section,
         };
     }
