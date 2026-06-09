@@ -389,7 +389,7 @@ class StorefrontController extends Controller
         $includeCounts = $request->boolean('include_counts') ? 'counts' : 'no-counts';
 
         return 'storefront:home:' . $storeId
-            . ':schema:v4'
+            . ':schema:v5'
             . ':v' . $version
             . ':sections:' . md5(implode(',', $sections))
             . ':' . $includeCounts;
@@ -400,7 +400,7 @@ class StorefrontController extends Controller
         $version = app(StorefrontCache::class)->version($storeId);
 
         return Cache::remember(
-            "storefront:home-section:{$storeId}:v{$version}:{$section}",
+            "storefront:home-section:{$storeId}:schema:v2:v{$version}:{$section}",
             now()->addMinutes(30),
             $callback
         );

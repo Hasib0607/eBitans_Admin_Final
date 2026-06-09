@@ -6,14 +6,19 @@ class StorefrontProductPresenter
 {
     public function compact($product, ?array $fields = null): array
     {
-        $discountPrice = $product->regular_price <= $product->promotional_price ? 0 : $product->promotional_price;
+        $regularPrice = (float) ($product->regular_price ?? 0);
+        $promotionalPrice = (float) ($product->promotional_price ?? 0);
+        $discountPrice = $regularPrice <= $promotionalPrice ? 0 : $promotionalPrice;
+        $calculateRegularPrice = getPrice($regularPrice, $discountPrice, $product->discount_type);
 
         $payload = [
             'id' => $product->id,
             'name' => $product->name,
             'slug' => generateSlug($product->name, '-'),
             'image' => $this->firstProductImage($product),
-            'regular_price' => (float) $product->regular_price,
+            'regular_price' => $regularPrice,
+            'price' => (float) $calculateRegularPrice,
+            'calculate_regular_price' => (float) $calculateRegularPrice,
             'discount_price' => (float) $discountPrice,
             'discount_type' => $product->discount_type,
             'quantity' => (float) $product->quantity,
