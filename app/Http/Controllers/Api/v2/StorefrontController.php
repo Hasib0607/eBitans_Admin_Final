@@ -113,7 +113,7 @@ class StorefrontController extends Controller
                     break;
 
                 case 'banner':
-                    $data['banner'] = BannerResource::collection($this->getBanners($store->id, 0))->resolve($request);
+                    $data['banner'] = BannerResource::collection($this->getBanners($store->id))->resolve($request);
                     break;
 
                 case 'banner_bottom':
@@ -334,7 +334,7 @@ class StorefrontController extends Controller
         $includeCounts = $request->boolean('include_counts') ? 'counts' : 'no-counts';
 
         return 'storefront:home:' . $storeId
-            . ':schema:v2'
+            . ':schema:v3'
             . ':v' . $version
             . ':sections:' . md5(implode(',', $sections))
             . ':fields:' . md5(implode(',', $fields))
