@@ -100,48 +100,61 @@ class StorefrontController extends Controller
         foreach ($sectionsToLoad as $section) {
             switch ($section) {
                 case 'hero_slider':
-                    $data['slider'] = SliderResource::collection($this->getSliders($store->id))->resolve($request);
+                    $data['slider'] = $this->rememberHomeSection($store->id, 'slider', fn () => (
+                        SliderResource::collection($this->getSliders($store->id))->resolve($request)
+                    ));
                     break;
 
                 case 'banner':
-                    $data['banner'] = BannerResource::collection($this->getBanners($store->id))->resolve($request);
+                    $data['banner'] = $this->rememberHomeSection($store->id, 'banner', fn () => (
+                        BannerResource::collection($this->getBanners($store->id))->resolve($request)
+                    ));
                     break;
 
                 case 'banner_bottom':
-                    $data['banner_bottom'] = BannerResource::collection($this->getBanners($store->id, 1))->resolve($request);
+                    $data['banner_bottom'] = $this->rememberHomeSection($store->id, 'banner_bottom', fn () => (
+                        BannerResource::collection($this->getBanners($store->id, 1))->resolve($request)
+                    ));
                     break;
 
                 case 'feature_category':
-                    $categories = $this->getCategoriesForStore($store->id, $request->boolean('include_counts'));
-                    $data['category'] = CategoryResource::collection($categories['categories'])->resolve($request);
+                    $data['category'] = $this->rememberHomeSection($store->id, 'category:' . ($request->boolean('include_counts') ? 'counts' : 'no-counts'), function () use ($request, $store) {
+                        $categories = $this->getCategoriesForStore($store->id, $request->boolean('include_counts'));
+
+                        return CategoryResource::collection($categories['categories'])->resolve($request);
+                    });
                     break;
 
                 case 'product':
-                    $data['products'] = $this->getCompactProducts($store->id, null, $request);
+                    $data['products'] = $this->rememberHomeSection($store->id, 'products', fn () => $this->getCompactProducts($store->id));
                     break;
 
                 case 'feature_product':
-                    $data['feature_products'] = $this->getCompactProducts($store->id, 'feature', $request);
+                    $data['feature_products'] = $this->rememberHomeSection($store->id, 'feature_products', fn () => $this->getCompactProducts($store->id, 'feature'));
                     break;
 
                 case 'best_sell_product':
-                    $data['best_sell_products'] = $this->getCompactProducts($store->id, 'best_sell', $request);
+                    $data['best_sell_products'] = $this->rememberHomeSection($store->id, 'best_sell_products', fn () => $this->getCompactProducts($store->id, 'best_sell'));
                     break;
 
                 case 'new_arrival':
-                    $data['new_arrival_products'] = $this->getCompactProducts($store->id, 'new_arrival', $request);
+                    $data['new_arrival_products'] = $this->rememberHomeSection($store->id, 'new_arrival_products', fn () => $this->getCompactProducts($store->id, 'new_arrival'));
                     break;
 
                 case 'testimonial':
-                    $data['testimonial'] = TestimonialResource::collection($this->getTestimonials($store->id))->resolve($request);
+                    $data['testimonial'] = $this->rememberHomeSection($store->id, 'testimonial', fn () => (
+                        TestimonialResource::collection($this->getTestimonials($store->id))->resolve($request)
+                    ));
                     break;
 
                 case 'brand':
-                    $data['brand'] = BrandResource::collection($this->getBrands($store->id))->resolve($request);
+                    $data['brand'] = $this->rememberHomeSection($store->id, 'brand', fn () => (
+                        BrandResource::collection($this->getBrands($store->id))->resolve($request)
+                    ));
                     break;
 
                 case 'youtube':
-                    $data['youtube'] = $this->getYoutubeSection($store->id, $request);
+                    $data['youtube'] = $this->rememberHomeSection($store->id, 'youtube', fn () => $this->getYoutubeSection($store->id, $request));
                     break;
             }
         }
@@ -380,6 +393,17 @@ class StorefrontController extends Controller
             . ':v' . $version
             . ':sections:' . md5(implode(',', $sections))
             . ':' . $includeCounts;
+    }
+
+    private function rememberHomeSection(int $storeId, string $section, callable $callback)
+    {
+        $version = app(StorefrontCache::class)->version($storeId);
+
+        return Cache::remember(
+            "storefront:home-section:{$storeId}:v{$version}:{$section}",
+            now()->addMinutes(30),
+            $callback
+        );
     }
 
     private function getMenu(int $storeId)

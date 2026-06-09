@@ -13,6 +13,8 @@
 /storage/framework/views
 /storage/debugbar
 /storage/*.key
+/bootstrap/cache/*.php
+/bootstrap/config.php
 /vendor
 .env
 .env.backup
