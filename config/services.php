@@ -48,6 +48,8 @@ return [
         'force_ssl' => env('ACCOUNT_DOMAIN_FORCE_SSL', true),
         'hosting_mode' => env('ACCOUNT_DOMAIN_HOSTING_MODE', 'PUBLIC_HTML'),
         'document_root' => env('ACCOUNT_DOMAIN_DOCUMENT_ROOT', 'public_html'),
+        'csrf_token' => env('ACCOUNT_DOMAIN_CSRF_TOKEN', ''),
+        'csrf_cookie' => env('ACCOUNT_DOMAIN_CSRF_COOKIE', ''),
     ],
 
 ];

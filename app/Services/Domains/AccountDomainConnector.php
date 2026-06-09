@@ -33,9 +33,7 @@ class AccountDomainConnector
         ];
 
         try {
-            $response = Http::acceptJson()
-                ->withToken($token)
-                ->timeout((int) config('services.account_domain.timeout', 30))
+            $response = $this->client($token)
                 ->post($this->endpoint('/api/v1/account/domains'), $payload);
         } catch (Throwable $exception) {
             $message = 'Account domain API request failed.';
@@ -98,9 +96,7 @@ class AccountDomainConnector
         ];
 
         try {
-            $response = Http::acceptJson()
-                ->withToken($token)
-                ->timeout((int) config('services.account_domain.timeout', 30))
+            $response = $this->client($token)
                 ->post($this->endpoint('/api/v1/account/domains/bulk'), $payload);
         } catch (Throwable $exception) {
             return [
@@ -124,11 +120,43 @@ class AccountDomainConnector
         return rtrim((string) config('services.account_domain.base_url'), '/') . $path;
     }
 
+    private function client(string $token)
+    {
+        $client = Http::acceptJson()
+            ->asJson()
+            ->withToken($token)
+            ->withHeaders([
+                'X-Requested-With' => 'XMLHttpRequest',
+            ])
+            ->timeout((int) config('services.account_domain.timeout', 30));
+
+        $csrfToken = (string) config('services.account_domain.csrf_token', '');
+        if ($csrfToken !== '') {
+            $client = $client->withHeaders([
+                'X-CSRF-TOKEN' => $csrfToken,
+                'X-XSRF-TOKEN' => $csrfToken,
+            ]);
+        }
+
+        $csrfCookie = (string) config('services.account_domain.csrf_cookie', '');
+        if ($csrfCookie !== '') {
+            $client = $client->withHeaders([
+                'Cookie' => $csrfCookie,
+            ]);
+        }
+
+        return $client;
+    }
+
     private function failureMessage(int $status, $body): string
     {
         $message = is_array($body) ? ($body['message'] ?? $body['error'] ?? null) : null;
 
         if (!empty($message)) {
+            if (stripos((string) $message, 'csrf') !== false) {
+                return 'Domain server API CSRF/auth setup is not configured correctly.';
+            }
+
             return (string) $message;
         }
 
