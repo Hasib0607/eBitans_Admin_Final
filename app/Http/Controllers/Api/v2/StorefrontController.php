@@ -90,7 +90,7 @@ class StorefrontController extends Controller
     private function buildHomePayload(Request $request, object $store): array
     {
         $layout = $this->getLayout($store);
-        $design = $this->designForLayout($this->getDesign($store->id), $layout);
+        $design = $this->getDesign($store->id);
         $activeLayout = $this->getActiveLayout($store, $design);
         $sections = $this->requestedSections($request);
         $sectionsToLoad = empty($sections) ? $activeLayout : $sections;
@@ -170,7 +170,7 @@ class StorefrontController extends Controller
     private function buildBootstrapPayload(Request $request, object $store): array
     {
         $layout = $this->getLayout($store);
-        $design = $this->designForLayout($this->getDesign($store->id), $layout);
+        $design = $this->getDesign($store->id);
         $categories = $this->getCategoriesForStore($store->id, $request->boolean('include_counts'));
         $modules = $this->getModules($store->id);
 
@@ -377,7 +377,7 @@ class StorefrontController extends Controller
         $includeCounts = $request->boolean('include_counts') ? 'counts' : 'no-counts';
 
         return 'storefront:bootstrap:' . $storeId
-            . ':schema:v2'
+            . ':schema:v3'
             . ':v' . $version
             . ':' . $includeCounts;
     }
@@ -786,32 +786,6 @@ class StorefrontController extends Controller
             'banner_bottom',
             'hero_slider',
         ];
-    }
-
-    private function designForLayout(?array $design, array $layout): ?array
-    {
-        if (!$design) {
-            return $design;
-        }
-
-        foreach ($layout as $section) {
-            $section = $this->normalizeSectionName($section);
-
-            if (array_key_exists($section, $design) && $this->isBlankDesignValue($design[$section])) {
-                $design[$section] = 'default';
-            }
-        }
-
-        return $design;
-    }
-
-    private function isBlankDesignValue($value): bool
-    {
-        if ($value === null || $value === '') {
-            return true;
-        }
-
-        return in_array(strtolower((string) $value), ['null', 'none'], true);
     }
 
     private function designColumns(): array
