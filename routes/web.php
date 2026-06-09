@@ -213,7 +213,7 @@ Route::middleware(['auth', 'otpverify', 'store', 'activestore', 'checkplan', 'ad
     Route::get('/layout-products/productdatefilter', [ProductController::class, 'layoutProduct'])->name('layout.product.filter');
     Route::post('/get-layout-custom-design', [ProductController::class, 'getCustomLayoutDesign'])->name('get.layout.custom.design');
 
-    Route::get('/admin/allproducts', [ProductController::class, 'allss']);
+    Route::get('/admin/allproducts', [ProductController::class, 'allss'])->name('auto.admin.allproducts');
     Route::get('/changeprostatus', [ProductController::class, 'changeprostatus'])->name('changeprostatus');
     Route::get('/products/productdatefilter', [ProductController::class, 'productdatefilter'])->name('productdatefilter');
     Route::get('/products/create', [ProductController::class, 'create'])->name('addproducts');
@@ -225,7 +225,7 @@ Route::middleware(['auth', 'otpverify', 'store', 'activestore', 'checkplan', 'ad
 
     Route::get('/getsubcat', [ProductController::class, 'getsubcat'])->name('getsubcat');
     Route::get('/deleteproduct/{id}', [ProductController::class, 'delete'])->name('deleteproduct');
-    Route::get('/products/edit/{id}', [ProductController::class, 'edit']);
+    Route::get('/products/edit/{id}', [ProductController::class, 'edit'])->name('auto.products.edit.id');
     Route::post('/product/save', [ProductController::class, 'save'])->name('productSave');
     Route::post('/product/update/{id}', [ProductController::class, 'update'])->name('updateproduct');
 
@@ -242,10 +242,10 @@ Route::middleware(['auth', 'otpverify', 'store', 'activestore', 'checkplan', 'ad
     Route::get('/product/duplicate/{id}', [ProductController::class, 'duplicateProduct'])->name('product.duplicate');
 
     Route::resource('/category', CategoryController::class);
-    Route::get('/category/{id}/delete', [CategoryController::class, 'deletecat']);
-    Route::get('/changecatstatus', [CategoryController::class, 'changecatstatus']);
-    Route::get('/update-position-category', [CategoryController::class, 'updateposition']);
-    Route::get('/categories/suggestions', [CategoryController::class, 'suggest']);
+    Route::get('/category/{id}/delete', [CategoryController::class, 'deletecat'])->name('auto.category.id.delete');
+    Route::get('/changecatstatus', [CategoryController::class, 'changecatstatus'])->name('auto.changecatstatus');
+    Route::get('/update-position-category', [CategoryController::class, 'updateposition'])->name('auto.update.position.category');
+    Route::get('/categories/suggestions', [CategoryController::class, 'suggest'])->name('auto.categories.suggestions');
     Route::delete('/delete/category/image/{id}', [CategoryController::class, 'deleteImage'])->name("removeCategoryImage");
 
     // product import
@@ -254,44 +254,41 @@ Route::middleware(['auth', 'otpverify', 'store', 'activestore', 'checkplan', 'ad
     Route::post('/import/products/process', [ProductImportController::class, 'process'])->name('products.import.process');
 
 
-    Route::get('/update-position-product', [ProductController::class, 'updatePositionProduct']);
-
-    Route::get('/searchproductss', [PosController::class, 'searchproductss']);
-
+    Route::get('/update-position-product', [ProductController::class, 'updatePositionProduct'])->name('auto.update.position.product');
+    Route::get('/searchproductss', [PosController::class, 'searchproductss'])->name('auto.searchproductss');
     Route::post('pre-payment-config', [ModulusController::class, 'prePaymentConfig'])->name('pre.payment.config');
 
     Route::resource('/subcategory', SubCategoryController::class);
-    Route::get('/subcategory/{id}/delete', [SubCategoryController::class, 'deletecat']);
-    Route::get('/changesubcatstatus', [SubCategoryController::class, 'changesubcatstatus']);
+    Route::get('/subcategory/{id}/delete', [SubCategoryController::class, 'deletecat'])->name('auto.subcategory.id.delete');
+    Route::get('/changesubcatstatus', [SubCategoryController::class, 'changesubcatstatus'])->name('auto.changesubcatstatus');
     Route::delete('/delete/subcategory/image/{id}', [SubCategoryController::class, 'deleteImage'])->name("removeSubCategoryImage");
 
     Route::resource('/brand', BrandController::class);
-    Route::get('/brand/{id}/delete', [BrandController::class, 'deletebrand']);
+    Route::get('/brand/{id}/delete', [BrandController::class, 'deletebrand'])->name('auto.brand.id.delete');
     Route::get('/brand/{id}/product', [BrandController::class, 'brandproduct'])->name('brand.product');
     Route::get('/brand/{id}/product/filter', [BrandController::class, 'branddatte'])->name('branddatefilter');
     Route::delete('/delete/brand/image/{id}', [BrandController::class, 'deleteImage'])->name("removeBrandImage");
 
     Route::resource('/supplier', SupplierController::class);
-    Route::get('/supplier/{id}/delete', [SupplierController::class, 'deletesupplier']);
+    Route::get('/supplier/{id}/delete', [SupplierController::class, 'deletesupplier'])->name('auto.supplier.id.delete');
     Route::get('/supplier/{id}/product', [SupplierController::class, 'supplierproduct'])->name('supplier.product');
     Route::get('/supplier/{id}/product/filter', [SupplierController::class, 'supplierdatte'])->name('supplierdatefilter');
 
     Route::get('/tasks', [ProductController::class, 'exportCsv'])->name('productExportCsv');
-    Route::get('/categoryexport', [CategoryController::class, 'categoryexport']);
-    Route::get('/subcategoryexport', [CategoryController::class, 'subcategoryexport']);
-    Route::get('/brandexport', [BrandController::class, 'brandexport']);
-    Route::get('/supplierexport', [SupplierController::class, 'supplierexport']);
-    Route::get('/couponexport', [PromotionController::class, 'couponexport']);
-    Route::get('/campaignexport', [PromotionController::class, 'campaignexport']);
-    Route::get('/orderexport', [OrderController::class, 'exportorder']);
-    Route::get('/invoiceexport', [PosController::class, 'invoiceexport']);
-    Route::get('/sliderexport', [DesignController::class, 'sliderexport']);
-    Route::get('/testimonialexport', [DesignController::class, 'testimonialexport']);
-    Route::get('/pageexport', [PageController::class, 'pageexport']);
-    Route::get('/customerexport', [CustomerController::class, 'customerexport']);
-    Route::get('/staffexport', [StaffController::class, 'staffexport']);
-    Route::get('/reviewexport', [ReportController::class, 'reviewexport']);
-
+    Route::get('/categoryexport', [CategoryController::class, 'categoryexport'])->name('auto.categoryexport');
+    Route::get('/subcategoryexport', [CategoryController::class, 'subcategoryexport'])->name('auto.subcategoryexport');
+    Route::get('/brandexport', [BrandController::class, 'brandexport'])->name('auto.brandexport');
+    Route::get('/supplierexport', [SupplierController::class, 'supplierexport'])->name('auto.supplierexport');
+    Route::get('/couponexport', [PromotionController::class, 'couponexport'])->name('auto.couponexport');
+    Route::get('/campaignexport', [PromotionController::class, 'campaignexport'])->name('auto.campaignexport');
+    Route::get('/orderexport', [OrderController::class, 'exportorder'])->name('auto.orderexport');
+    Route::get('/invoiceexport', [PosController::class, 'invoiceexport'])->name('auto.invoiceexport');
+    Route::get('/sliderexport', [DesignController::class, 'sliderexport'])->name('auto.sliderexport');
+    Route::get('/testimonialexport', [DesignController::class, 'testimonialexport'])->name('auto.testimonialexport');
+    Route::get('/pageexport', [PageController::class, 'pageexport'])->name('auto.pageexport');
+    Route::get('/customerexport', [CustomerController::class, 'customerexport'])->name('auto.customerexport');
+    Route::get('/staffexport', [StaffController::class, 'staffexport'])->name('auto.staffexport');
+    Route::get('/reviewexport', [ReportController::class, 'reviewexport'])->name('auto.reviewexport');
     Route::group(['middleware' => ['isModulusAccess:114']], function () {
         Route::resource('/attribute', AttributeController::class);
         Route::post('/attribute/position', [AttributeController::class, 'position'])->name('position');
@@ -313,7 +310,7 @@ Route::middleware(['auth', 'otpverify', 'store', 'activestore', 'checkplan', 'ad
     Route::get('promotions/coupon/{id}/edit', [PromotionController::class, 'editcoupon'])->name('coupon.edit')->middleware(['websiteplan']);
     Route::post('promotions/coupon/update/{id}', [PromotionController::class, 'updatecoupon'])->name('coupon.update')->middleware(['websiteplan']);
     Route::get('promotions/coupon/delete/{id}', [PromotionController::class, 'deletecoupon'])->name('coupon.delete')->middleware(['websiteplan']);
-    Route::get('/changecouponstatus', [PromotionController::class, 'changecouponstatus'])->middleware(['websiteplan']);
+    Route::get('/changecouponstatus', [PromotionController::class, 'changecouponstatus'])->name('auto.changecouponstatus')->middleware(['websiteplan']);
 
     Route::get('promotion/campaign', [PromotionController::class, 'campaign'])->name('promotion.campaign')->middleware(['websiteplan']);
     Route::get('promotion/campaign/create', [PromotionController::class, 'addcampaign'])->name('campaign.add')->middleware(['websiteplan']);
@@ -326,7 +323,7 @@ Route::middleware(['auth', 'otpverify', 'store', 'activestore', 'checkplan', 'ad
     Route::get('removefromcam/{cid}/{id}', [PromotionController::class, 'rmvcmp'])->name('removefromcam')->middleware(['websiteplan']);
     Route::get('removefromcamcat/{cid}/{id}', [PromotionController::class, 'rmvcmpcat'])->name('removefromcamcat')->middleware(['websiteplan']);
     Route::get('removefromcampro/{cid}/{id}', [PromotionController::class, 'rmvcmppro'])->name('removefromcampro')->middleware(['websiteplan']);
-    Route::get('/changecampaignstatus', [PromotionController::class, 'changecampaignstatus'])->middleware(['websiteplan']);
+    Route::get('/changecampaignstatus', [PromotionController::class, 'changecampaignstatus'])->name('auto.changecampaignstatus')->middleware(['websiteplan']);
     Route::post('/multipledeletecampro', [PromotionController::class, 'multipledeletecampro'])->name('multipledeletecampro')->middleware(['websiteplan']);
     Route::post('/multipledeletecamcat', [PromotionController::class, 'multipledeletecamcat'])->name('multipledeletecamcat')->middleware(['websiteplan']);
 
@@ -336,7 +333,7 @@ Route::middleware(['auth', 'otpverify', 'store', 'activestore', 'checkplan', 'ad
     Route::post('promotion/offer/store', [PromotionController::class, 'storeoffer'])->name('offer.store')->middleware(['websiteplan']);
     Route::get('promotion/offer/edit/{id}', [PromotionController::class, 'editoffer'])->name('offer.edit');
     Route::post('promotion/offer/update/{id}', [PromotionController::class, 'updateoffer'])->name('offer.update')->middleware(['websiteplan']);
-    Route::get('removefromofr/{cid}/{id}', [PromotionController::class, 'rmvofr'])->name('removefromofr')->middleware(['websiteplan']);
+    Route::get('removefromofr/{cid}/{id}', [PromotionController::class, 'rmvofr'])->name('removefromofr.product')->middleware(['websiteplan']);
     Route::post('/offerprodelete', [PromotionController::class, 'offerprodelete'])->name('offerprodelete')->middleware(['websiteplan']);
 
     /*Design*/
@@ -346,15 +343,15 @@ Route::middleware(['auth', 'otpverify', 'store', 'activestore', 'checkplan', 'ad
     Route::post('/design/slider/save', [DesignController::class, 'saveslider'])->name('slider.save')->middleware(['websiteplan']);
     Route::post('/design/slider/update/{id}', [DesignController::class, 'updateslider'])->name('slider.update')->middleware(['websiteplan']);
     Route::get('/design/slider/delete/{id}', [DesignController::class, 'deleteslider'])->name('slider.delete')->middleware(['websiteplan']);
-    Route::get('/changesliderstatus', [DesignController::class, 'changesliderstatus'])->middleware(['websiteplan']);
-    Route::get('/update-position-slider', [DesignController::class, 'updatepositionslider'])->middleware(['websiteplan']);
+    Route::get('/changesliderstatus', [DesignController::class, 'changesliderstatus'])->name('auto.changesliderstatus')->middleware(['websiteplan']);
+    Route::get('/update-position-slider', [DesignController::class, 'updatepositionslider'])->name('auto.update.position.slider')->middleware(['websiteplan']);
     Route::delete('/delete/slider/image/{id}', [DesignController::class, 'deleteSliderImage'])->name("removeSliderImage");
 
     //Design Banner
     Route::post('/design/banner/save', [DesignController::class, 'savebanner'])->name('banner.save')->middleware(['websiteplan']);
     Route::post('/design/banner/update/{id}', [DesignController::class, 'updatebanner'])->name('banner.update')->middleware(['websiteplan']);
     Route::get('/design/banner/delete/{id}', [DesignController::class, 'deletebanner'])->name('banner.delete')->middleware(['websiteplan']);
-    Route::get('/changebannerstatus', [DesignController::class, 'changebannerstatus'])->middleware(['websiteplan']);
+    Route::get('/changebannerstatus', [DesignController::class, 'changebannerstatus'])->name('auto.changebannerstatus')->middleware(['websiteplan']);
     Route::delete('/delete/banner/image/{id}', [DesignController::class, 'deleteBannerImage'])->name("removeBannerImage");
 
     //Design Header->middleware(['websiteplan'])
@@ -421,7 +418,7 @@ Route::middleware(['auth', 'otpverify', 'store', 'activestore', 'checkplan', 'ad
     //layout homepage
     Route::get('/design/layout/homepage', [LayoutController::class, 'homepage'])->name('design.layout.homepage')->middleware(['websiteplan']);
     Route::post('/design/layout/homepage/save', [LayoutController::class, 'savehomepage'])->name('savehomepagedesign')->middleware(['websiteplan']);
-    Route::post('/design/invoice/save', [LayoutController::class, 'saveinvoice'])->name('saveinvoice')->middleware(['websiteplan']);
+    Route::post('/design/invoice/save', [LayoutController::class, 'saveinvoice'])->name('layout.saveinvoice')->middleware(['websiteplan']);
 
     //Pages
     Route::get('design/pages', [PageController::class, 'index'])->name('pages')->middleware(['websiteplan']);
@@ -431,8 +428,8 @@ Route::middleware(['auth', 'otpverify', 'store', 'activestore', 'checkplan', 'ad
     Route::get('design/page/edit/{id}', [PageController::class, 'edit'])->name('editpage')->middleware(['websiteplan']);
     Route::post('/page/update/{id}', [PageController::class, 'update'])->name('updatepage')->middleware(['websiteplan']);
     Route::get('/page/delete/{id}', [PageController::class, 'destroy'])->name('deletepage')->middleware(['websiteplan']);
-    Route::get('/changepagestatus', [PageController::class, 'changepagestatus'])->middleware(['websiteplan']);
-    Route::get('/update-position-page', [PageController::class, 'updateposition'])->middleware(['websiteplan']);
+    Route::get('/changepagestatus', [PageController::class, 'changepagestatus'])->name('auto.changepagestatus')->middleware(['websiteplan']);
+    Route::get('/update-position-page', [PageController::class, 'updateposition'])->name('auto.update.position.page')->middleware(['websiteplan']);
     Route::delete('/delete/page/image/{id}', [PageController::class, 'deleteImage'])->name("removePageFeatureImage");
 
     //Customer
@@ -501,14 +498,14 @@ Route::middleware(['auth', 'otpverify', 'store', 'activestore', 'checkplan', 'ad
     //Role and Permission\\
     Route::get('/role-and-permission', [RolepermissionController::class, 'index'])->name('role.permission')->middleware(['websiteplan']);
     Route::post('/role-and-permission/save', [RolepermissionController::class, 'save'])->name('saverole')->middleware(['websiteplan']);
-    Route::get('/role-and-permission/{id}/edit', [RolepermissionController::class, 'edit'])->name('editrole')->middleware(['websiteplan']);
-    Route::post('/role-and-permission/{id}/update', [RolepermissionController::class, 'update'])->name('editrole')->middleware(['websiteplan']);
+    Route::get('/role-and-permission/{id}/edit', [RolepermissionController::class, 'edit'])->name('editrole.edit')->middleware(['websiteplan']);
+    Route::post('/role-and-permission/{id}/update', [RolepermissionController::class, 'update'])->name('editrole.update')->middleware(['websiteplan']);
     Route::get('/role-and-permission/{id}/delete', [RolepermissionController::class, 'delete'])->name('deleterole')->middleware(['websiteplan']);
     Route::get('/role-and-permission/{id}/permission', [RolepermissionController::class, 'permission'])->name('permission')->middleware(['websiteplan']);
     Route::post('/role-and-permission/{id}/savepermission', [RolepermissionController::class, 'savepermission'])->name('savepermission')->middleware(['websiteplan']);
 
     Route::post('/role/update', [RolepermissionController::class, 'updaterole'])->name('editrole')->middleware(['websiteplan']);
-    Route::get('role/name', [RolepermissionController::class, 'getname'])->middleware(['websiteplan']);
+    Route::get('role/name', [RolepermissionController::class, 'getname'])->name('auto.role.name')->middleware(['websiteplan']);
 
     //Testimonials\\
     Route::get('design/testimonials', [TestimonialsController::class, 'index'])->name('testimonials')->middleware(['websiteplan']);
@@ -518,10 +515,10 @@ Route::middleware(['auth', 'otpverify', 'store', 'activestore', 'checkplan', 'ad
     Route::get('design/testimonials/edit/{id}', [TestimonialsController::class, 'edit'])->name('testimonials.edit')->middleware(['websiteplan']);
     Route::post('/testimonials/update/{id}', [TestimonialsController::class, 'update'])->name('testimonials.update')->middleware(['websiteplan']);
     Route::get('/testimonials/delete/{id}', [TestimonialsController::class, 'delete'])->name('testimonials.delete')->middleware(['websiteplan']);
-    Route::get('/changetestimonialsstatus', [TestimonialsController::class, 'changetestimonialsstatus'])->middleware(['websiteplan']);
+    Route::get('/changetestimonialsstatus', [TestimonialsController::class, 'changetestimonialsstatus'])->name('auto.changetestimonialsstatus')->middleware(['websiteplan']);
     Route::delete('/delete/testimonials/image/{id}', [TestimonialsController::class, 'deleteImage'])->name("removeTestimonialImage")->middleware(['websiteplan']);
 
-    Route::get('/update-position-testimonials', [TestimonialsController::class, 'updateposition'])->middleware(['websiteplan']);
+    Route::get('/update-position-testimonials', [TestimonialsController::class, 'updateposition'])->name('auto.update.position.testimonials')->middleware(['websiteplan']);
 
     //Admin Order
     Route::middleware(['websitepos'])->group(function () {
@@ -582,7 +579,7 @@ Route::middleware(['auth', 'otpverify', 'store', 'activestore', 'checkplan', 'ad
     //Domain
     Route::get('/domain', [SettingController::class, 'domain'])->name('domain')->middleware(['websiteplan']);
     Route::post('/domain/save', [SettingController::class, 'savedomain'])->name('savedomain')->middleware(['websiteplan']);
-    Route::get('/changedomain', [SettingController::class, 'changedomain'])->middleware(['websiteplan']);
+    Route::get('/changedomain', [SettingController::class, 'changedomain'])->name('auto.changedomain')->middleware(['websiteplan']);
 
     //Report
     Route::get('/report', [ReportController::class, 'index'])->name('report')->middleware(['websiteplan']);
@@ -610,24 +607,24 @@ Route::middleware(['auth', 'otpverify', 'store', 'activestore', 'checkplan', 'ad
     // Route::get('/design/settings',[DesignController::class,'designsettings'])->name('design.settings');
     // Route::get('/invoice12',[OrderController::class,'invoice'])->name('invoice');
 
-    Route::post('/changes_design', [DesignController::class, 'changes_design'])->middleware(['websiteplan']);
+    Route::post('/changes_design', [DesignController::class, 'changes_design'])->name('auto.changes.design')->middleware(['websiteplan']);
 
-    Route::get('/changeslider', [DesignController::class, 'changeslider'])->middleware(['websiteplan']);
-    Route::get('/changebanner', [DesignController::class, 'changebanner'])->middleware(['websiteplan']);
-    Route::get('/changebanner-bottom', [DesignController::class, 'changebannerBottom'])->middleware(['websiteplan']);
-    Route::get('/changefcat', [DesignController::class, 'changefcat'])->middleware(['websiteplan']);
-    Route::get('/changeproduct', [DesignController::class, 'changeproduct'])->middleware(['websiteplan']);
-    Route::get('/changefpro', [DesignController::class, 'changefpro'])->middleware(['websiteplan']);
-    Route::get('/changebsp', [DesignController::class, 'changebsp'])->middleware(['websiteplan']);
-    Route::get('/changenap', [DesignController::class, 'changenap'])->middleware(['websiteplan']);
-    Route::get('/changetesti', [DesignController::class, 'changetesti'])->middleware(['websiteplan']);
-    Route::get('/changefooter', [DesignController::class, 'changefooter'])->middleware(['websiteplan']);
-    Route::get('/changeheader', [DesignController::class, 'changeheader'])->middleware(['websiteplan']);
+    Route::get('/changeslider', [DesignController::class, 'changeslider'])->name('auto.changeslider')->middleware(['websiteplan']);
+    Route::get('/changebanner', [DesignController::class, 'changebanner'])->name('auto.changebanner')->middleware(['websiteplan']);
+    Route::get('/changebanner-bottom', [DesignController::class, 'changebannerBottom'])->name('auto.changebanner.bottom')->middleware(['websiteplan']);
+    Route::get('/changefcat', [DesignController::class, 'changefcat'])->name('auto.changefcat')->middleware(['websiteplan']);
+    Route::get('/changeproduct', [DesignController::class, 'changeproduct'])->name('auto.changeproduct')->middleware(['websiteplan']);
+    Route::get('/changefpro', [DesignController::class, 'changefpro'])->name('auto.changefpro')->middleware(['websiteplan']);
+    Route::get('/changebsp', [DesignController::class, 'changebsp'])->name('auto.changebsp')->middleware(['websiteplan']);
+    Route::get('/changenap', [DesignController::class, 'changenap'])->name('auto.changenap')->middleware(['websiteplan']);
+    Route::get('/changetesti', [DesignController::class, 'changetesti'])->name('auto.changetesti')->middleware(['websiteplan']);
+    Route::get('/changefooter', [DesignController::class, 'changefooter'])->name('auto.changefooter')->middleware(['websiteplan']);
+    Route::get('/changeheader', [DesignController::class, 'changeheader'])->name('auto.changeheader')->middleware(['websiteplan']);
 
-    Route::get('/changeinvoice', [LayoutController::class, 'changeinvoice'])->middleware(['websiteplan']);
+    Route::get('/changeinvoice', [LayoutController::class, 'changeinvoice'])->name('auto.changeinvoice')->middleware(['websiteplan']);
 
     //Pricing
-    Route::get('/pricing/list', [StoreController::class, 'pricinglist'])->middleware(['websiteplan']);
+    Route::get('/pricing/list', [StoreController::class, 'pricinglist'])->name('auto.pricing.list')->middleware(['websiteplan']);
 
     //Inventory
     Route::get('/inventory', [ProductController::class, 'inventory'])->name('inventory')->middleware(['websitepos']);
@@ -649,14 +646,13 @@ Route::middleware(['auth', 'otpverify', 'store', 'activestore', 'checkplan', 'ad
     Route::get('/addonss', [ChooseplanController::class, 'addons'])->name('addonss');
     Route::post('/savemobileappsinfo/{id}', [ChooseplanController::class, 'savemobileappsinfo'])->name('savemobileappsinfo');
 
-    Route::get('plancheck', [ChooseplanController::class, 'plancheck'])->middleware(['websiteplan']);
-    Route::get('/plancheckout', [ChooseplanController::class, 'plancheckout'])->middleware(['websiteplan']);
+    Route::get('plancheck', [ChooseplanController::class, 'plancheck'])->name('auto.plancheck')->middleware(['websiteplan']);
+    Route::get('/plancheckout', [ChooseplanController::class, 'plancheckout'])->name('auto.plancheckout')->middleware(['websiteplan']);
 
-    Route::get('addonsadd', [ChooseplanController::class, 'addonsadd']);
-    Route::get('/addonsremove', [ChooseplanController::class, 'addonsremove']);
-    Route::get('activityaddonsadd', [ChooseplanController::class, 'activityaddonsadd']);
-    Route::get('/activityaddonsremove', [ChooseplanController::class, 'activityaddonsremove']);
-
+    Route::get('addonsadd', [ChooseplanController::class, 'addonsadd'])->name('auto.addonsadd');
+    Route::get('/addonsremove', [ChooseplanController::class, 'addonsremove'])->name('auto.addonsremove');
+    Route::get('activityaddonsadd', [ChooseplanController::class, 'activityaddonsadd'])->name('auto.activityaddonsadd');
+    Route::get('/activityaddonsremove', [ChooseplanController::class, 'activityaddonsremove'])->name('auto.activityaddonsremove');
     Route::post('/changeproduct/status', [ProductController::class, 'changeproductstatus'])->name('changeproductstatus')->middleware(['websiteplan']);
     Route::post('/changecategory/status', [CategoryController::class, 'changecategorystatus'])->name('changecategorystatus')->middleware(['websiteplan']);
     Route::post('/changebrand/status', [BrandController::class, 'changebrandstatus'])->name('changebrandstatus')->middleware(['websiteplan']);
@@ -686,7 +682,7 @@ Route::middleware(['auth', 'otpverify', 'store', 'activestore', 'checkplan', 'ad
 
     Route::get('/themecustomize', [ThemeController::class, 'themecustomize'])->name('themecustomize')->middleware(['websiteplan']);
     Route::get('/addons-pack', [AddonsApiController::class, 'addonPack'])->name('addon.pack')->middleware(['websiteplan']);
-    Route::get('/addons-pack-pages', [AddonsApiController::class, 'addonPackPaginate'])->middleware(['websiteplan']);
+    Route::get('/addons-pack-pages', [AddonsApiController::class, 'addonPackPaginate'])->name('auto.addons.pack.pages')->middleware(['websiteplan']);
     Route::post('/addons-pack', [AddonsApiController::class, 'addonPackStore'])->name('addon.pack.store')->middleware(['websiteplan']);
     Route::post('/addons-pack/edit', [AddonsApiController::class, 'addonPackUpdate'])->name('addon.pack.update')->middleware(['websiteplan']);
     Route::get('/addons-pack/delete', [AddonsApiController::class, 'addonPackDelete'])->name('addon.pack.delete')->middleware(['websiteplan']);
@@ -722,12 +718,10 @@ Route::middleware(['auth', 'otpverify', 'store', 'activestore', 'checkplan', 'ad
     Route::get('/digital-marketing/required-information/individual-content/delete/{id}', [RequiredInformationController::class, 'individualContentDelete'])->name('required.information.individual.content.delete')->middleware(['digitalplan']);
     // hk end
 
-    Route::get('/content/download/{id}', [DigitalMarketingController::class, 'downloadcontent']);
-
+    Route::get('/content/download/{id}', [DigitalMarketingController::class, 'downloadcontent'])->name('auto.content.download.id');
     //Message
-    Route::get('messages', [ChatsController::class, 'fetchMessages']);
-    Route::post('messages', [ChatsController::class, 'sendMessage']);
-
+    Route::get('messages', [ChatsController::class, 'fetchMessages'])->name('auto.messages');
+    Route::post('messages', [ChatsController::class, 'sendMessage'])->name('auto.messages.2');
     //Email
     Route::get('/webmails', [WebmailController::class, 'webmail'])->name('emaillist');
     Route::get('/webemails/delete/{email}', [WebmailController::class, 'webmaildelete'])->name('emaillistdelete');
@@ -770,7 +764,7 @@ Route::middleware(['auth', 'otpverify', 'store', 'activestore', 'checkplan', 'ad
 Route::post('/changelang', [AdminController::class, 'changelang'])->name('admin.changelang');
 
 // UniSharp Laravel File manager
-Route::group(['prefix' => 'laravel-filemanager', 'middleware' => ['web', 'auth']], function () {
+Route::group(['prefix' => 'laravel-filemanager', 'as' => 'laravel-filemanager.', 'middleware' => ['web', 'auth']], function () {
     Route::post('/custom-upload', [\App\Http\Controllers\FileManager\FilemanagerController::class, 'upload'])->name('custom.lfm.upload');
 
     \UniSharp\LaravelFilemanager\Lfm::routes();
@@ -884,7 +878,7 @@ Route::middleware(['auth', 'superadmin'])->group(function () {
     Route::get('/clients-follow-up/search', [SuperAdminController::class, 'clientActivitiesFollowUpSearch'])->name('admin.clients.followUp.search');
     // Route::get('/clients-activities', [SuperAdminController::class, 'clientActivities'])->name('admin.clients.activities');
     Route::post('/clients-activities/by-date', [SuperAdminController::class, 'clientActivitiesByDate'])->name('superadmin.clients.activities.byDate');
-    Route::get('/clients-activities/by-date', [SuperAdminController::class, 'clientActivities'])->name('superadmin.clients.activities.byDate');
+    Route::get('/clients-activities/by-date', [SuperAdminController::class, 'clientActivities'])->name('superadmin.clients.activities.byDate.index');
     Route::post('/clients-activities/comments', [SuperAdminController::class, 'clientActivitiesComments'])->name('superadmin.clients.activities.comments');
     Route::post('/client/comment', [SuperAdminController::class, 'storeComment'])->name('admin.client.commnet');
     Route::post('/referral-commission', [SuperAdminController::class, 'referralCommissionUpdate'])->name('superadmin.update.referral_commission');
@@ -1198,7 +1192,7 @@ Route::middleware(['auth', 'superadmin'])->group(function () {
     // File Control
     Route::get('/filecontrol', [FileControlController::class, 'filecontrol'])->name('filecontrol');
     Route::post('/fileuploads', [FileControlController::class, 'fileuploads'])->name('fileuploads');
-    Route::post('/newupload', [FileControlController::class, 'fileuploads'])->name('fileuploads');
+    Route::post('/newupload', [FileControlController::class, 'fileuploads'])->name('fileuploads.newupload');
     Route::get('/deletefile/{id}', [FileControlController::class, 'deletefile'])->name('deletefile');
     Route::get('/deletedataa/{domain}', [FileControlController::class, 'deletedataa'])->name('deletedataa');
     Route::post('/copyfilee', [FileControlController::class, 'copyfile'])->name('copyfile');
@@ -1468,13 +1462,13 @@ Route::get('/admin/bkash/refund', [BkashController::class, 'getRefund'])->name('
 Route::post('/admin/bkash/refund', [BkashController::class, 'refundPayment'])->name('url-post-refund');
 
 // Checkout (URL) User Part
-Route::get('/admin/bkash/pay', [AdminBkashController::class, 'payment'])->name('url-pay');
-Route::get('/admin/bkash/create', [AdminBkashController::class, 'createPayment'])->name('url-create');
-Route::get('/admin/bkash/callback', [AdminBkashController::class, 'callback'])->name('url-callback');
+Route::get('/admin/bkash/pay', [AdminBkashController::class, 'payment'])->name('admin.url-pay');
+Route::get('/admin/bkash/create', [AdminBkashController::class, 'createPayment'])->name('admin.url-create');
+Route::get('/admin/bkash/callback', [AdminBkashController::class, 'callback'])->name('admin.url-callback');
 
 // Checkout (URL) Admin Part
-Route::get('/admin/bkash/refund', [AdminBkashController::class, 'getRefund'])->name('url-get-refund');
-Route::post('/admin/bkash/refund', [AdminBkashController::class, 'refundPayment'])->name('url-post-refund');
+Route::get('/admin/bkash/refund', [AdminBkashController::class, 'getRefund'])->name('admin.url-get-refund');
+Route::post('/admin/bkash/refund', [AdminBkashController::class, 'refundPayment'])->name('admin.url-post-refund');
 
 // SSL Checkout (URL) User Part
 Route::get('/ssl/create', [SSLController::class, 'createPayment'])->name('ssl.create-payment');

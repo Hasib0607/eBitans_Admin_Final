@@ -101,8 +101,8 @@ Route::middleware(['auth', 'affiliate'])->group(function () {
     Route::get('/bkash/search/{trxID}', [App\Http\Controllers\BkashTokenizePaymentController::class, 'searchTnx'])->name('bkash-serach');
 
     //refund payment routes
-    Route::get('/a-bkash/refund', [App\Http\Controllers\BkashTokenizePaymentController::class, 'refund'])->name('bkash-refund');
-    Route::get('/a-bkash/refund/status', [App\Http\Controllers\BkashTokenizePaymentController::class, 'refundStatus'])->name('bkash-refund-status');
+    Route::get('/a-bkash/refund', [App\Http\Controllers\BkashTokenizePaymentController::class, 'refund'])->name('affiliate.bkash-refund');
+    Route::get('/a-bkash/refund/status', [App\Http\Controllers\BkashTokenizePaymentController::class, 'refundStatus'])->name('affiliate.bkash-refund-status');
     /*** bkash affiliate payment end ***/
 
 

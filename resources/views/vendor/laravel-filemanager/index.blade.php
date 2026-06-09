@@ -147,7 +147,7 @@
                 </button>
             </div>
             <div class="modal-body">
-                <form action="{{ route('custom.lfm.upload') }}" role='form' id='uploadForm' name='uploadForm'
+                <form action="{{ route('laravel-filemanager.custom.lfm.upload') }}" role='form' id='uploadForm' name='uploadForm'
                       method='post' enctype='multipart/form-data' class="dropzone">
                     <div class="form-group" id="attachment">
                         <div class="controls text-center">

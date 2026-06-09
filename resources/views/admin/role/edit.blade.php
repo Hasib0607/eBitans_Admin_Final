@@ -41,7 +41,7 @@
                     <h4>@if(Session::has('lang') && Session::get('lang')=='bn') ভূমিকা সম্পাদনা করুন  @else Edit Roles @endif</h4>
                 </div>
                 <div class="card-body">
-                    <form action="{{route('admin.editrole',$role->id)}}" method="post" enctype="multipart/form-data">
+                    <form action="{{route('admin.editrole.update',$role->id)}}" method="post" enctype="multipart/form-data">
                     @csrf
                     <div class="mb-3 row">
                         <label for="staticEmail" class="col-md-3 col-form-label">@if(Session::has('lang') && Session::get('lang')=='bn') নাম @else Name @endif</label>
