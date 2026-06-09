@@ -41,4 +41,13 @@ return [
         'redirect' => env('google_redirect'),
     ],
 
+    'account_domain' => [
+        'base_url' => env('ACCOUNT_DOMAIN_API_BASE_URL', 'http://72.60.235.117:4000'),
+        'token' => env('ACCOUNT_DOMAIN_API_TOKEN'),
+        'timeout' => env('ACCOUNT_DOMAIN_API_TIMEOUT', 30),
+        'force_ssl' => env('ACCOUNT_DOMAIN_FORCE_SSL', true),
+        'hosting_mode' => env('ACCOUNT_DOMAIN_HOSTING_MODE', 'PUBLIC_HTML'),
+        'document_root' => env('ACCOUNT_DOMAIN_DOCUMENT_ROOT', 'public_html'),
+    ],
+
 ];

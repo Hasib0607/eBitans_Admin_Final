@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Http\Traits\ActivityLogTraits;
-use App\Logic\Providers\cPanelApi;
 use App\Models\Campaign;
 use App\Models\CheckoutForm;
 use App\Models\Currency;
@@ -15,7 +14,7 @@ use App\Models\Staff;
 use App\Models\Store;
 use App\Models\User;
 use App\Models\Visitorcount;
-use App\Models\ZoneRecord;
+use App\Services\Domains\AccountDomainConnector;
 use Auth;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -481,7 +480,7 @@ class SettingController extends Controller
         }
 
         $inputDomain = cleanDomain($request->domain);
-        $exDomain = Domain::where("name", $inputDomain)->where("store_id", $store_id)->first();
+        $exDomain = Domain::where("name", $inputDomain)->where("status", "!=", "Rejected")->first();
         if ($exDomain) {
             Session::flash('error', 'Domain already exist. Please choose another domain.');
             return back();
@@ -495,226 +494,39 @@ class SettingController extends Controller
         $domainData->customer_id = $customer_id;
         $domainData->creator = $user;
         $domainData->editor = $user;
+        $domainData->save();
 
         $domain = $domainData->name ?? "";
 
-        if (!empty($domain)) {
-            $api = new cPanelApi("ebitans.com", "ebitans", env("HOST_POINT"));
-
-            $responseData = null;
-
-            // Add Domain in cpanel
-            $data = $api->addDomain($domain);
-            $responseData = json_decode($data);
-
-            if (!isset($responseData->cpanelresult->error)) {
-                $domainData->connect_status = 1;
-                $domainData->remark = "Domain add in cpanel";
-                $domainData->save();
-            } else {
-                $error1 = "already exists in the userdata";
-                if (strpos($responseData->cpanelresult->error, $error1) !== false) {
-                    $domainData->connect_status = 1;
-                    $domainData->remark = "Domain add in cpanel";
-                    $domainData->save();
-                } else {
-                    \Illuminate\Support\Facades\Session::flash('error', 'Your Name Server not update yet. Please update your name server.');
-                    return redirect()->back();
-                }
-            }
-
-
-            // Add Sub daomain in cpanel
-            if (!is_null($domainData->connect_status) && $domainData->connect_status == 1) {
-                $data = $api->addSubdomain($domain);
-                $responseData = json_decode($data);
-                if (!isset($responseData->cpanelresult->error)) {
-                    $domainData->connect_status = 2;
-                    $domainData->remark = "Sub domain add in cpanel";
-                    $domainData->save();
-                } else {
-                    $error1 = "already exists in the userdata";
-                    if (strpos($responseData->cpanelresult->error, $error1) !== false) {
-                        $domainData->connect_status = 2;
-                        $domainData->remark = "Sub domain add in cpanel";
-                        $domainData->update();
-                    } else {
-                        $domainData->remark = "Failed adding sub domain in cpanel";
-                        $domainData->update();
-
-                        \Illuminate\Support\Facades\Session::flash('error', 'Your Name Server not update yet. Please update your name server.');
-                        return redirect()->back();
-                    }
-                }
-
-                // For update MX Record
-                $api->updateMxToWebmail($domain);
-            }
-
-            if (!is_null($domainData->connect_status) && $domainData->connect_status == 2) {
-                $ARecordZone = ZoneRecord::where('type', 'A')->pluck('value');
-                $CNAMERecord = ZoneRecord::where('type', 'CNAME')->pluck('value');
-
-                if (count($ARecordZone) <= 0 || count($CNAMERecord) <= 0) {
-                    $domainData->remark = "Zone type like A,CNAME Not found in the database";
-                    $domainData->save();
-
-                    Session::flash('error', 'Domain connect failed. Please try again');
-                    return redirect()->back();
-                }
-
-                $zoneData = [
-                    [
-                        "record_type" => "A",
-                        "record_value" => $ARecordZone ?? [],
-                    ],
-                    [
-                        "record_type" => "CNAME",
-                        "record_value" => $CNAMERecord ?? [],
-                    ],
-                ];
-
-                $zoneErrorStatus = false;
-                // Delete zone record (A, CNAME, AAAA)
-                        $deleteTypes = array_merge(
-                            array_column($zoneData, 'record_type'),
-                            ['AAAA'] // add AAAA manually
-                        );
-
-                        foreach ($deleteTypes as $type) {
-                            $result = $api->deleteDomainZoneEditorRecord($domain, $type);
-                            if (!$result) {
-                                $zoneErrorStatus = true;
-                                break;
-                            }
-                        }
-
-                // Check error status is false then proceed
-                if (!$zoneErrorStatus) {
-                    // Add zone record
-                    foreach ($zoneData as $zone) {
-                        $successStatus = false;
-                        foreach ($zone['record_value'] as $value) {
-                            $data = $api->addZoneEditor($domain, $zone['record_type'], $value);
-                            $responseData = json_decode($data);
-
-                            if (isset($responseData->cpanelresult->data[0]->result->status) && $responseData->cpanelresult->data[0]->result->status == 0) {
-                                $domainData->remark = "Domain not add in Cpanel Zone";
-                                $domainData->save();
-
-                                Session::flash('error', 'Domain connect failed. Please try again');
-                                return redirect()->back();
-                            }
-
-                            if (!isset($responseData->cpanelresult->error)) {
-                                $successStatus = true;
-                                break;
-                            }
-                        }
-                        if (!$successStatus) {
-                            $zoneErrorStatus = true;
-                            break;
-                        }
-                    }
-                }
-
-                if ($zoneErrorStatus) {
-                    $domainData->remark = "Domain not add in Cpanel Zone";
-                    $domainData->save();
-
-                    Session::flash('error', 'Domain connect failed. Please try again');
-                    return redirect()->back();
-                } else {
-                    $domainData->connect_status = 3;
-                    $domainData->remark = "Successfully domain add in Cpanel Zone";
-                    $domainData->save();
-                }
-            }
-
-            if ($domainData->connect_status == 3) {
-                $superAdmin = new SuperAdminController();
-                $vercelStatus = false;
-                $domain_name = cleanDomain($domain);
-                $data = $superAdmin->addDomainInVercel($domain_name);
-                $vercelError = null;
-
-                if (!is_null($data)) {
-                    $responseData = json_decode($data);
-
-                    if (!isset($responseData->error)) {
-                        $domain_name = cleanDomain($domain);
-                        $domain = "www.$domain_name"; // Second Time Add With www
-                        $data = $superAdmin->addDomainInVercel($domain);
-                        if (!is_null($data)) {
-                            $responseData = json_decode($data);
-                            if (!isset($responseData->error)) {
-                                $vercelStatus = true;
-                            }
-                        }
-                    } else {
-                        if ($responseData->error->code == "domain_already_in_use") {
-                            $vercelError = $responseData->error->message ?? "Domain already use in vercel";
-                        }
-                    }
-                }
-
-                if ($vercelStatus) {
-                    // Active domain
-                    $domainData->status = "Active";
-                    $domainData->connect_status = 4;
-                    $domainData->remark = "Successfully add domain in Cpanel and Vercel Both";
-                    $domainData->save();
-
-                    $superAdmin->activeStoreDomain($domainData);
-
-                    $dm = explode('.', $domainData->name);
-                    if (isset($dm) && count($dm) == 2) {
-                        $user = User::find($domainData->uid);
-                        $user->domain = $domainData->name;
-                        $user->active_cpanel = "active";
-                        $user->save();
-
-                        $store = Store::find($domainData->store_id);
-                        $store->webmail_status = "active";
-                        $store->save();
-                    }
-
-
-                    $linkURL = route("superadmin.domainrequest");
-                    $notificationData = [
-                        "title" => "Domain Activated (" . ($domainData->name ?? '') . ") - " . formatDateWithTime($domainData->created_at),
-                        "type" => "domain_request",
-                        "user_type" => "superadmin",
-                        "link" => $linkURL,
-                    ];
-
-                    if (isset($notificationData['title']) && !empty($notificationData['title'])) {
-                        createNotification($notificationData);
-                    }
-
-                    $activity = " Save Domain";
-                    $this->saveactivity($activity);
-                    Session::flash('success', 'Domain connect successfully');
-                    return redirect()->back();
-                } else {
-                    $domainData->remark = $vercelError ?? "Domain not add in Vercel";
-                    $domainData->save();
-
-                    Session::flash('error', 'Domain connect failed. Please try again');
-                    return redirect()->back();
-                }
-            }
-
-            if ($domainData->connect_status >= 4) {
-                Session::flash('success', 'You already successfully connect this domain.');
-                return redirect()->back();
-            }
-
-            $domainData->remark = "Unknown remark";
-            $domainData->save();
-            Session::flash('error', 'Domain connect failed. Please try again');
+        if (empty($domain)) {
+            Session::flash('error', 'Please provide domain name');
             return redirect()->back();
         }
+
+        $result = app(AccountDomainConnector::class)->connect($domainData);
+
+        if (!$result['status']) {
+            Session::flash('error', $result['message']);
+            return redirect()->back();
+        }
+
+        $domainData = $domainData->fresh();
+        $linkURL = route("superadmin.domainrequest");
+        $notificationData = [
+            "title" => "Domain Activated (" . ($domainData->name ?? '') . ") - " . formatDateWithTime($domainData->created_at),
+            "type" => "domain_request",
+            "user_type" => "superadmin",
+            "link" => $linkURL,
+        ];
+
+        if (isset($notificationData['title']) && !empty($notificationData['title'])) {
+            createNotification($notificationData);
+        }
+
+        $activity = " Save Domain";
+        $this->saveactivity($activity);
+        Session::flash('success', 'Domain connect successfully');
+        return redirect()->back();
     }
 
     public function changedomain(Request $request)

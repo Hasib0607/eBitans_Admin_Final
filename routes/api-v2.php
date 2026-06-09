@@ -25,7 +25,6 @@ use App\Http\Controllers\Api\v2\PseAdsController;
 use App\Http\Controllers\Api\v2\ProductAffiliateController;
 use App\Http\Controllers\Api\v2\DistrictController;
 use App\Http\Controllers\Api\v2\CountryController;
-use App\Http\Controllers\Api\v2\AccountDomainController;
 use App\Http\Controllers\DesignController;
 use App\Http\Controllers\PaymentGateway\MarchantPaymentGetwayKYCController;
 use App\Http\Controllers\Api\v2\AdminVisitorController;
@@ -197,8 +196,6 @@ Route::get('/v2/get/country', [CountryController::class, 'getAllCountry']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/v2/getuser', [LoginController::class, 'getuser']);
-    Route::get('/v2/account/domains', [AccountDomainController::class, 'index']);
-    Route::post('/v2/account/domains', [AccountDomainController::class, 'store']);
     Route::post('/v2/password-change', [UserController::class, 'changepass']);
     Route::post('/v2/user/updateprofile', [UserController::class, 'updateuser']);
     Route::post('/v2/order/cancel', [OrderController::class, 'cancelorder']);
