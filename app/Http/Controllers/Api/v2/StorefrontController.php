@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\BannerResource;
 use App\Http\Resources\BrandResource;
 use App\Http\Resources\CategoryResource;
+use App\Http\Resources\CustomDesignResource;
 use App\Http\Resources\ProductLayoutResource;
 use App\Http\Resources\SliderResource;
 use App\Http\Resources\TestimonialResource;
@@ -18,6 +19,7 @@ use App\Models\Page;
 use App\Models\Product;
 use App\Models\Review;
 use App\Models\Slider;
+use App\Models\StoreDesign;
 use App\Models\Temposition;
 use App\Models\Testimonial;
 use App\Services\Storefront\StorefrontCache;
@@ -41,25 +43,15 @@ class StorefrontController extends Controller
                 return response()->json(['status' => false, 'message' => 'Store not found!'], 404);
             }
 
-            $categories = $this->getCategoriesForStore($store->id, $request->boolean('include_counts'));
-            $modules = $this->getModules($store->id);
+            if (!$request->boolean('debug')) {
+                $payload = Cache::remember($this->bootstrapCacheKey($store->id, $request), now()->addMinutes(5), function () use ($request, $store) {
+                    return $this->buildBootstrapPayload($request, $store);
+                });
 
-            $payload = [
-                'status' => true,
-                'message' => 'Success',
-                'data' => [
-                    'store' => $this->storePayload($store),
-                    'design' => $this->getDesign($store->id),
-                    'headersetting' => $this->getHeaderSetting($store->id),
-                    'layout' => $this->getLayout($store),
-                    'menu' => $this->getMenu($store->id),
-                    'page' => $this->getPages($store->id),
-                    'category' => CategoryResource::collection($categories['categories'])->resolve($request),
-                    'subcategory' => $categories['subcategories'],
-                    'modules' => $modules,
-                    'marketing_modules' => $this->getMarketingModules($modules),
-                ],
-            ];
+                return $this->storefrontResponse($request, $payload, $metrics);
+            }
+
+            $payload = $this->buildBootstrapPayload($request, $store);
 
             return $this->storefrontResponse($request, $payload, $metrics);
         } catch (\Exception $exception) {
@@ -97,14 +89,13 @@ class StorefrontController extends Controller
 
     private function buildHomePayload(Request $request, object $store): array
     {
-        $design = $this->getDesign($store->id);
+        $layout = $this->getLayout($store);
+        $design = $this->designForLayout($this->getDesign($store->id), $layout);
         $activeLayout = $this->getActiveLayout($store, $design);
         $sections = $this->requestedSections($request);
         $sectionsToLoad = empty($sections) ? $activeLayout : $sections;
 
-        $data = [
-            'layout' => $activeLayout,
-        ];
+        $data = $this->emptyHomeData($activeLayout);
 
         foreach ($sectionsToLoad as $section) {
             switch ($section) {
@@ -150,7 +141,7 @@ class StorefrontController extends Controller
                     break;
 
                 case 'youtube':
-                    $data['youtube'] = $this->getYoutubeSection($store->id);
+                    $data['youtube'] = $this->getYoutubeSection($store->id, $request);
                     break;
             }
         }
@@ -160,6 +151,31 @@ class StorefrontController extends Controller
             'message' => 'Success',
             'store_id' => $store->id,
             'data' => $data,
+        ];
+    }
+
+    private function buildBootstrapPayload(Request $request, object $store): array
+    {
+        $layout = $this->getLayout($store);
+        $design = $this->designForLayout($this->getDesign($store->id), $layout);
+        $categories = $this->getCategoriesForStore($store->id, $request->boolean('include_counts'));
+        $modules = $this->getModules($store->id);
+
+        return [
+            'status' => true,
+            'message' => 'Success',
+            'data' => [
+                'store' => $this->storePayload($store),
+                'design' => $design,
+                'headersetting' => $this->getHeaderSettingWithCustomDesign($store->id, $request),
+                'layout' => $layout,
+                'menu' => $this->getMenu($store->id),
+                'page' => $this->getPages($store->id),
+                'category' => CategoryResource::collection($categories['categories'])->resolve($request),
+                'subcategory' => $categories['subcategories'],
+                'modules' => $modules,
+                'marketing_modules' => $this->getMarketingModules($modules),
+            ],
         ];
     }
 
@@ -282,6 +298,22 @@ class StorefrontController extends Controller
         return Headersetting::convertCurrency($storeId)->first();
     }
 
+    private function getHeaderSettingWithCustomDesign(int $storeId, Request $request)
+    {
+        $headerSetting = $this->getHeaderSetting($storeId);
+        $customDesign = $this->getCustomDesign($storeId, $request);
+
+        if (!$headerSetting) {
+            return [
+                'custom_design' => $customDesign,
+            ];
+        }
+
+        $headerSetting->custom_design = $customDesign;
+
+        return $headerSetting;
+    }
+
     private function getLayout(object $store): array
     {
         $cacheKey = "layout_positions_{$store->id}_{$store->template_id}";
@@ -324,6 +356,17 @@ class StorefrontController extends Controller
             fn ($section) => $this->normalizeSectionName(trim($section)),
             explode(',', $request->query('sections'))
         ))));
+    }
+
+    private function bootstrapCacheKey(int $storeId, Request $request): string
+    {
+        $version = app(StorefrontCache::class)->version($storeId);
+        $includeCounts = $request->boolean('include_counts') ? 'counts' : 'no-counts';
+
+        return 'storefront:bootstrap:' . $storeId
+            . ':schema:v2'
+            . ':v' . $version
+            . ':' . $includeCounts;
     }
 
     private function homeCacheKey(int $storeId, Request $request): string
@@ -369,17 +412,65 @@ class StorefrontController extends Controller
             ->get();
     }
 
-    private function getYoutubeSection(int $storeId): array
+    private function getYoutubeSection(int $storeId, Request $request): array
     {
+        $customDesign = $this->getCustomDesign($storeId, $request);
+
+        if (!empty($customDesign['youtube'])) {
+            return array_values(array_map(fn ($item) => [
+                'title' => $item['title'] ?? '',
+                'subtitle' => $item['subtitle'] ?? '',
+                'link' => $item['link'] ?? '',
+                'bg_image' => $item['bg_image'] ?? null,
+            ], $customDesign['youtube']));
+        }
+
         $headerSetting = $this->getHeaderSetting($storeId);
 
         if (empty($headerSetting?->youtube_link)) {
             return [];
         }
 
-        return [
-            'youtube_link' => $headerSetting->youtube_link,
-        ];
+        return [[
+            'title' => '',
+            'subtitle' => '',
+            'link' => $headerSetting->youtube_link,
+            'bg_image' => null,
+        ]];
+    }
+
+    private function getCustomDesign(int $storeId, Request $request): array
+    {
+        $designs = StoreDesign::select([
+            'id',
+            'title',
+            'title_color',
+            'subtitle',
+            'subtitle_color',
+            'button',
+            'button_color',
+            'button_bg_color',
+            'button1',
+            'button1_color',
+            'button1_bg_color',
+            'link',
+            'bg_image',
+            'image_description',
+            'is_buy_now_cart',
+            'is_buy_now_cart1',
+            'type',
+        ])
+            ->where('store_id', $storeId)
+            ->get();
+
+        $grouped = collect(CustomDesignResource::collection($designs)->resolve($request))
+            ->groupBy(fn ($item) => $this->normalizeSectionName($item['type'] ?? ''))
+            ->map(fn ($items) => $items->values()->all())
+            ->all();
+
+        $defaults = array_fill_keys($this->customDesignTypes(), []);
+
+        return array_replace($defaults, array_intersect_key($grouped, $defaults));
     }
 
     private function getTestimonials(int $storeId)
@@ -646,6 +737,59 @@ class StorefrontController extends Controller
         unset($data['bkash_token']);
 
         return $data;
+    }
+
+    private function emptyHomeData(array $layout): array
+    {
+        return [
+            'layout' => $layout,
+            'slider' => [],
+            'banner' => [],
+            'banner_bottom' => [],
+            'youtube' => [],
+            'testimonial' => [],
+            'products' => [],
+            'best_sell_products' => [],
+            'new_arrival_products' => [],
+            'brand' => [],
+        ];
+    }
+
+    private function customDesignTypes(): array
+    {
+        return [
+            'youtube',
+            'testimonial',
+            'banner',
+            'banner_bottom',
+            'hero_slider',
+        ];
+    }
+
+    private function designForLayout(?array $design, array $layout): ?array
+    {
+        if (!$design) {
+            return $design;
+        }
+
+        foreach ($layout as $section) {
+            $section = $this->normalizeSectionName($section);
+
+            if (array_key_exists($section, $design) && $this->isBlankDesignValue($design[$section])) {
+                $design[$section] = 'default';
+            }
+        }
+
+        return $design;
+    }
+
+    private function isBlankDesignValue($value): bool
+    {
+        if ($value === null || $value === '') {
+            return true;
+        }
+
+        return in_array(strtolower((string) $value), ['null', 'none'], true);
     }
 
     private function designColumns(): array

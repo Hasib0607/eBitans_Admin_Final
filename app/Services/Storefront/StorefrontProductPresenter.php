@@ -17,15 +17,9 @@ class StorefrontProductPresenter
             'discount_price' => (float) $discountPrice,
             'discount_type' => $product->discount_type,
             'quantity' => (float) $product->quantity,
-            'stock_status' => $product->stock_status,
+            'stock_status' => $product->stock_status ?? (((float) $product->quantity) > 0 ? 'in_stock' : 'out_of_stock'),
             'symbol' => $product->symbol,
-            'code' => $product->code,
-            'brand_id' => $product->brand,
             'brand_name' => $product->getBrand->name ?? '',
-            'rating' => $product->reviews_count > 0 ? $product->reviews_sum_rating / $product->reviews_count : 0,
-            'number_rating' => $product->reviews_count,
-            'position' => $product->position,
-            'created_at' => $product->created_at,
         ];
 
         return $this->onlyFields($payload, $fields);
