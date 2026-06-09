@@ -390,8 +390,8 @@ Route::group(['prefix' => 'v2'], function () {
     // End NewsLetter hk
 
     // User
-    Route::get('/bkash/checkout-url/orderPay', [BkashController::class, 'orderPay'])->name('bkash.payment');
-    Route::get('/admin/bkash/checkout-url/orderPay', [AdminBkashController::class, 'orderPay'])->name('admin.bkash.payment');
+    Route::get('/bkash/checkout-url/orderPay', [BkashController::class, 'orderPay'])->name('bkash.payment.v2');
+    Route::get('/admin/bkash/checkout-url/orderPay', [AdminBkashController::class, 'orderPay'])->name('admin.bkash.payment.v2');
 
     Route::get('/booking-from/{store}/{id?}', [BookingController::class, 'index']);
 

@@ -504,7 +504,7 @@ class OrderController extends Controller
             $url = null;
 
             if ($request->payment_type == 'bkash') {
-                $url = route('bkash.payment') . '?order=' . $order->id;
+                $url = route('bkash.payment.v2') . '?order=' . $order->id;
             } elseif ($request->payment_type == 'online') { // this is foe ssl
                 $url = route('ssl.create-payment') . "?order_id=$order->id&store_id=$store->id";
             } elseif ($request->payment_type == 'amarpay') {
@@ -522,7 +522,7 @@ class OrderController extends Controller
             } elseif (ModulusStatus($store->id, 106) && $request->payment_type == 'ap') {
                 if (isset($headersetting->payment_method)) {
                     if ($headersetting->payment_method == 'bKash') {
-                        $url = route('bkash.payment') . '?order=' . $order->id;
+                        $url = route('bkash.payment.v2') . '?order=' . $order->id;
                     } elseif ($headersetting->payment_method == 'SSL') { // this is foe ssl
                         $url = route('ssl.create-payment') . "?order_id=$order->id&store_id=$store->id";
                     } elseif ($headersetting->payment_method == 'ebitans_amarpay') {
