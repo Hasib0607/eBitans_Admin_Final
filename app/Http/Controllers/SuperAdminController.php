@@ -1448,26 +1448,37 @@ class SuperAdminController extends Controller
             if (!empty($domain)) {
                 if ($domainData->connect_status >= 4) {
                     Session::flash('success', 'You already successfully connect this domain.');
-                    return redirect()->back();
+                    return $this->domainConnectRedirect();
                 }
 
                 $result = app(AccountDomainConnector::class)->connect($domainData);
 
                 if ($result['status']) {
                     Session::flash('success', 'Domain connect successfully');
-                    return redirect()->back();
+                    return $this->domainConnectRedirect();
                 }
 
                 Session::flash('error', $result['message']);
-                return redirect()->back();
+                return $this->domainConnectRedirect();
             }
 
             Session::flash('error', 'Please provide domain name');
-            return redirect()->back();
+            return $this->domainConnectRedirect();
         } catch (\Exception $e) {
             Session::flash('error', 'Something Went Wrong. Please try again');
-            return redirect()->back();
+            return $this->domainConnectRedirect();
         }
+    }
+
+    private function domainConnectRedirect()
+    {
+        $user = Auth::user();
+
+        if ($user && in_array($user->type, ['superadmin', 'superstaff'])) {
+            return redirect()->route('superadmin.domainrequest');
+        }
+
+        return redirect()->route('admin.domain');
     }
 
     /**
