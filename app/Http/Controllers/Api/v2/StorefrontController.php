@@ -44,7 +44,7 @@ class StorefrontController extends Controller
             }
 
             if (!$request->boolean('debug')) {
-                $payload = Cache::remember($this->bootstrapCacheKey($store->id, $request), now()->addMinutes(5), function () use ($request, $store) {
+                $payload = Cache::remember($this->bootstrapCacheKey($store->id, $request), now()->addMinutes(30), function () use ($request, $store) {
                     return $this->buildBootstrapPayload($request, $store);
                 });
 
@@ -72,7 +72,7 @@ class StorefrontController extends Controller
 
             if (!$request->boolean('debug')) {
                 $cacheKey = $this->homeCacheKey($store->id, $request);
-                $payload = Cache::remember($cacheKey, now()->addMinutes(5), function () use ($request, $store) {
+                $payload = Cache::remember($cacheKey, now()->addMinutes(30), function () use ($request, $store) {
                     return $this->buildHomePayload($request, $store);
                 });
 
@@ -373,14 +373,12 @@ class StorefrontController extends Controller
     {
         $version = app(StorefrontCache::class)->version($storeId);
         $sections = $this->requestedSections($request);
-        $fields = $this->requestedProductFields($request) ?? [];
         $includeCounts = $request->boolean('include_counts') ? 'counts' : 'no-counts';
 
         return 'storefront:home:' . $storeId
-            . ':schema:v3'
+            . ':schema:v4'
             . ':v' . $version
             . ':sections:' . md5(implode(',', $sections))
-            . ':fields:' . md5(implode(',', $fields))
             . ':' . $includeCounts;
     }
 
