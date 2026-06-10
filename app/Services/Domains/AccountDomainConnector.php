@@ -33,10 +33,10 @@ class AccountDomainConnector
         ];
 
         try {
-            $response = $this->client($token)
+            $hostingResponse = $this->client($token)
                 ->post($this->endpoint('/api/v1/account/domains'), $payload);
         } catch (Throwable $exception) {
-            $message = 'Account domain API request failed.';
+            $message = 'Hosting domain API request failed.';
             $this->markFailed($domain, $message);
 
             return [
@@ -47,30 +47,81 @@ class AccountDomainConnector
             ];
         }
 
-        if ($response->successful()) {
-            $domain->status = 'Active';
-            $domain->connect_status = 4;
-            $domain->remark = 'Successfully add domain using account domain API';
-            $domain->save();
-
-            $this->activateStoreDomain($domain);
+        if (!$this->isSuccessfulOrExisting($hostingResponse->status())) {
+            $message = $this->failureMessage($hostingResponse->status(), $hostingResponse->json());
+            $this->markFailed($domain, $message);
 
             return [
-                'status' => true,
-                'code' => $response->status(),
-                'message' => 'Domain connect successfully',
-                'response' => $response->json(),
+                'status' => false,
+                'code' => $hostingResponse->status(),
+                'message' => $message,
+                'response' => [
+                    'hosting' => $hostingResponse->json(),
+                    'project_domain' => null,
+                ],
             ];
         }
 
-        $message = $this->failureMessage($response->status(), $response->json());
-        $this->markFailed($domain, $message);
+        $domain->connect_status = 3;
+        $domain->remark = $hostingResponse->status() === 409
+            ? 'Domain already exists on hosting server; assigning frontend project'
+            : 'Successfully add domain on hosting server; assigning frontend project';
+        $domain->save();
+
+        $projectPayload = [
+            'name' => cleanDomain($domain->name),
+        ];
+
+        try {
+            $projectResponse = $this->client($token)
+                ->post($this->endpoint('/api/v1/account/project-domain/domains'), $projectPayload);
+        } catch (Throwable $exception) {
+            $message = 'Frontend project domain API request failed.';
+            $this->markFailed($domain, $message);
+
+            return [
+                'status' => false,
+                'code' => 500,
+                'message' => $message,
+                'response' => [
+                    'hosting' => $hostingResponse->json(),
+                    'project_domain' => null,
+                ],
+            ];
+        }
+
+        if (!$this->isSuccessfulOrExisting($projectResponse->status())) {
+            $message = $this->failureMessage($projectResponse->status(), $projectResponse->json());
+            $this->markFailed($domain, 'Frontend project assignment failed: ' . $message);
+
+            return [
+                'status' => false,
+                'code' => $projectResponse->status(),
+                'message' => $message,
+                'response' => [
+                    'hosting' => $hostingResponse->json(),
+                    'project_domain' => $projectResponse->json(),
+                ],
+            ];
+        }
+
+        $domain->status = 'Active';
+        $domain->connect_status = 4;
+        $domain->remark = $projectResponse->status() === 409
+            ? 'Domain already assigned to frontend project'
+            : 'Successfully add domain on hosting server and assign frontend project';
+        $domain->save();
+
+        $this->activateStoreDomain($domain);
 
         return [
-            'status' => false,
-            'code' => $response->status(),
-            'message' => $message,
-            'response' => $response->json(),
+            'status' => true,
+            'code' => $projectResponse->status(),
+            'message' => 'Domain connect successfully',
+            'response' => [
+                'hosting' => $hostingResponse->json(),
+                'project_domain' => $projectResponse->json(),
+            ],
         ];
     }
 
@@ -118,6 +169,11 @@ class AccountDomainConnector
     private function endpoint(string $path): string
     {
         return rtrim((string) config('services.account_domain.base_url'), '/') . $path;
+    }
+
+    private function isSuccessfulOrExisting(int $status): bool
+    {
+        return ($status >= 200 && $status < 300) || $status === 409;
     }
 
     private function client(string $token)
