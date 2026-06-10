@@ -4,7 +4,6 @@ use App\Models\AdminUserAnalytics;
 use App\Models\Customer;
 use App\Models\Store;
 use Illuminate\Support\Facades\Auth;
-use Stevebauman\Location\Facades\Location;
 use Jenssegers\Agent\Agent;
 
 function _getUserUsingInfo($user)
@@ -22,7 +21,9 @@ function _getUserUsingInfo($user)
 
 
     $ip = \Request::ip();
-    $info = Location::get($ip);
+    $locationResolver = app(\App\Services\Visitors\VisitorLocationResolver::class);
+    $info = $locationResolver->getCached($ip);
+    $locationResolver->warmAsync($ip);
 
 
     $macAddress = '';

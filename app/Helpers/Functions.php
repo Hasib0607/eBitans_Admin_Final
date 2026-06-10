@@ -532,7 +532,11 @@ if (!function_exists('getVisitorInfo')) {
         $ip = Request::ip();
 //        $ip = "220.158.205.23"; // BD
 //        $ip = "102.129.132.255"; // US
-        return Location::get($ip);
+        $locationResolver = app(\App\Services\Visitors\VisitorLocationResolver::class);
+        $info = $locationResolver->getCached($ip);
+        $locationResolver->warmAsync($ip);
+
+        return $info;
     }
 }
 
