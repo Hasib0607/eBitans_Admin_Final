@@ -68,12 +68,28 @@ class AccountDomainConnector
             : 'Successfully add domain on hosting server; assigning frontend project';
         $domain->save();
 
+        $projectToken = (string) config('services.account_domain.project_token');
+        if ($projectToken === '') {
+            $message = 'Frontend project domain API token is not configured.';
+            $this->markFailed($domain, $message);
+
+            return [
+                'status' => false,
+                'code' => 500,
+                'message' => $message,
+                'response' => [
+                    'hosting' => $hostingResponse->json(),
+                    'project_domain' => null,
+                ],
+            ];
+        }
+
         $projectPayload = [
             'name' => cleanDomain($domain->name),
         ];
 
         try {
-            $projectResponse = $this->client($token)
+            $projectResponse = $this->client($projectToken)
                 ->post($this->endpoint('/api/v1/account/project-domain/domains'), $projectPayload);
         } catch (Throwable $exception) {
             $message = 'Frontend project domain API request failed.';
