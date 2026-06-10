@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\Banner;
+use App\Models\Campaign;
 use App\Models\Brand;
 use App\Models\BuyModulus;
 use App\Models\Category;
@@ -67,7 +68,7 @@ class AppServiceProvider extends ServiceProvider
             }
         };
 
-        foreach ([Banner::class, Brand::class, BuyModulus::class, Category::class, Design::class, DesignPosition::class, Headersetting::class, Menu::class, Page::class, Slider::class, Store::class, StoreDesign::class, Testimonial::class] as $model) {
+        foreach ([Banner::class, Brand::class, BuyModulus::class, Campaign::class, Category::class, Design::class, DesignPosition::class, Headersetting::class, Menu::class, Page::class, Slider::class, Store::class, StoreDesign::class, Testimonial::class] as $model) {
             $model::saved($purge);
             $model::deleted($purge);
         }

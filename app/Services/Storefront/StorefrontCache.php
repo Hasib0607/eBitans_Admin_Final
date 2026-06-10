@@ -49,6 +49,7 @@ class StorefrontCache
     {
         Cache::forget("storefront:product:{$storeId}:{$productId}");
         Cache::forget("product_images_{$productId}");
+        Cache::forget("store_active_campaigns:{$storeId}:" . $this->version($storeId));
         $this->forgetStore($storeId);
     }
 

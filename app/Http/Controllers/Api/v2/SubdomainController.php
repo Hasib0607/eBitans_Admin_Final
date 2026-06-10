@@ -52,6 +52,7 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use App\Http\Resources\ProductLayoutResource;
+use App\Services\Storefront\ProductDetailsService;
 use App\Services\Storefront\StorefrontStoreResolver;
 
 class SubdomainController extends Controller
@@ -1297,125 +1298,19 @@ class SubdomainController extends Controller
     {
         if (empty($store) || is_null($store)) {
             return response()->json(['status' => false, 'message' => 'Store id is required']);
-        } else if (empty($id) || is_null($id)) {
+        }
+
+        if (empty($id) || is_null($id)) {
             return response()->json(['status' => false, 'message' => 'Product id is required']);
         }
 
-        $product = Product::convertCurrency($store)->where('products.id', $id)
-            ->where('products.status', 'active')
-            ->with([
-                'getBrand' => function ($query) {
-                    $query->select('id', 'name');
-                },
-                'layout' => function ($query) {
-                    $query->orderBy('position', 'asc');
-                }
-            ])
-            ->withSum('reviews', 'rating')  // Adds total_rating
-            ->withCount('reviews')
-            ->first();
+        $productData = app(ProductDetailsService::class)->get((int) $store, (int) $id);
 
-        if (isset($product)) {
-            // Prepare each product's data
-            $images = array_filter(explode(',', $product->images));
-            $gallery_image = array_filter(explode(',', $product->gallery_image));
-            $mergedImages = array_unique(array_merge($gallery_image, $images));
-            $images = array_map(fn($img) => getPath($img, 'assets/images/product'), $mergedImages);
-
-            $averageRating = $product->reviews_count > 0 ? $product->reviews_sum_rating / $product->reviews_count : 0;
-
-            // Convert currency for variants
-            $variants = $product->getVariantsWithConversion($store)->get()->map(function ($variant) {
-                return [
-                    'id' => $variant->id,
-                    'pid' => $variant->pid,
-                    'color' => trim($variant->color ?? ''),
-                    'color_name' => trim($variant->getColor->name ?? ''),
-                    'size' => $variant->size,
-                    'volume' => $variant->volume,
-                    'unit' => $variant->unit,
-                    'quantity' => $variant->quantity,
-                    'additional_price' => $variant->additional_price,
-                    'image' => getPath($variant->image, 'assets/images/product'),
-                    'color_image' => getPath($variant->color_image, 'assets/images/product'),
-                    'symbol' => $variant->symbol,
-                    'code' => $variant->code,
-                ];
-            });
-
-            $uniqueColors = collect($variants)
-                ->filter(fn($vr) => isset($vr['color']) && !empty(trim($vr['color']))) // Ensure color exists and is not empty
-                ->map(fn($vr) => [
-                    'color' => $vr['color'],
-                    'color_name' => $vr['color_name'],
-                    'color_image' => $vr['color_image'],
-                ])
-                ->unique('color') // Get unique entries by the 'color' field
-                ->values() // Re-index the resulting collection
-                ->toArray();
-
-            $discount_price = $product->regular_price <= $product->promotional_price ? "0" : $product->promotional_price;
-
-            $calculate_regular_price = getPrice($product->regular_price, $discount_price, $product->discount_type);
-            $campaign_offer = $this->checkProductOffer($product, $calculate_regular_price, $store);
-
-            $productQuantity = ($product->stock_status === 'in_stock' || is_null($product->stock_status))
-                ? (float)$product->quantity
-                : 0;
-
-
-            $productData = [
-                'id' => $product->id,
-                'name' => $product->name,
-                'image' => $images,
-                'rating' => $averageRating,
-                'number_rating' => $product->reviews_count,
-                'slug' => generateSlug($product->name, '-'),
-                'description' => $product->description,
-                'regular_price' => (float)$product->regular_price,
-                'calculate_regular_price' => (float)$calculate_regular_price ?? (float)$product->regular_price ?? "",
-                'product_offer' => $campaign_offer ?? "",
-                'discount_type' => $product->discount_type,
-                'discount_price' => (float)$discount_price,
-                'category_id' => $product->category ?? "",
-                'subcategory_id' => $product->subcategory ?? "",
-                'category' => $product->get_categories ?? "",
-                'subcategory' => $product->get_subcategories ?? "",
-                'tax_type' => $product->tax_type,
-                'tax_rate' => (float)$product->tax_rate,
-                'quantity' => $productQuantity,
-                'stock_status' => $product->stock_status,
-                'pre_order_note' => $product->pre_order_note,
-                'seo_keywords' => $product->seo_keywords,
-                'weight' => $product->weight,
-                'shipping_fee' => (float)$product->shipping_fee,
-                'video_link' => $product->video_link ?? "",
-                'SKU' => $product->SKU,
-                'tags' => $product->tags,
-                'product_link' => $product->product_link,
-                'currency_id' => $product->currency_id,
-                'symbol' => $product->symbol,
-                'code' => $product->code,
-                'position' => $product->position,
-                'variant' => $variants,
-                'variant_color' => $uniqueColors,
-                'brand_id' => $product->brand,
-                'brand_name' => $product->getBrand->name ?? "",
-                'supplier_id' => $product->supplier,
-                'supplier_name' => $product->getSupplier->name ?? "",
-                'created_at' => $product->created_at ?? ""
-            ];
-
-            $customizable = ModulusStatus($store, 121);
-
-            $productData['layout'] = $customizable
-                ? $product->layout->map(fn($layout) => new ProductLayoutResource($layout, $images))
-                : null;
-
-            return sendResponse("Success", $productData);
-        } else {
-            return sendError("Product not found!");
+        if (!$productData) {
+            return sendError('Product not found!');
         }
+
+        return sendResponse('Success', $productData);
     }
 
     public function plandetails(Request $request)
