@@ -315,14 +315,20 @@ class StorefrontController extends Controller
     {
         $headerSetting = $this->getHeaderSetting($storeId);
         $customDesign = $this->getCustomDesign($storeId, $request);
+        $totalSms = (int) getSmsCount($storeId);
+        $allowOrder = $totalSms > 0;
 
         if (!$headerSetting) {
             return [
                 'custom_design' => $customDesign,
+                'allowOrder' => $allowOrder,
+                'total_sms' => $totalSms,
             ];
         }
 
         $headerSetting->custom_design = $customDesign;
+        $headerSetting->allowOrder = $allowOrder;
+        $headerSetting->total_sms = $totalSms;
 
         return $headerSetting;
     }
@@ -377,7 +383,7 @@ class StorefrontController extends Controller
         $includeCounts = $request->boolean('include_counts') ? 'counts' : 'no-counts';
 
         return 'storefront:bootstrap:' . $storeId
-            . ':schema:v3'
+            . ':schema:v4'
             . ':v' . $version
             . ':' . $includeCounts;
     }
