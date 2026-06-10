@@ -412,7 +412,7 @@ class SubdomainController extends Controller
                         return response()->json(['status' => true, 'message' => 'Success', 'data' => $campaign]);
 
                     case 'category':
-                        $allProducts = Product::where('store_id', $store->id)
+                        $allProducts = Product::where('store_id', (string) $store->id)
                             ->select('id', 'category', 'subcategory') // Select only what's needed
                             ->get();
 
@@ -444,7 +444,7 @@ class SubdomainController extends Controller
                         return response()->json(['status' => true, 'message' => 'Success', 'data' => CategoryResource::collection($categories)]);
 
                     case 'subcategory':
-                        $allProducts = Product::where('store_id', $store->id)
+                        $allProducts = Product::where('store_id', (string) $store->id)
                             ->select('id', 'subcategory') // Only what we need
                             ->get();
 
@@ -761,7 +761,7 @@ class SubdomainController extends Controller
         $productIds = is_string($pids) ? explode(',', $pids) : $pids;
 
         // Fetch all products in a single query
-        $products = Product::where('store_id', $store_id)
+        $products = Product::where('store_id', (string) $store_id)
             ->whereIn('id', $productIds)
             ->where('status', 'active')
             ->get();
@@ -774,7 +774,7 @@ class SubdomainController extends Controller
         // Convert $pids to an array if it's a string
         $categoryIds = is_string($catIds) ? explode(',', $catIds) : $catIds;
 
-        $products = Product::where('store_id', $store_id)
+        $products = Product::where('store_id', (string) $store_id)
             ->whereIn('category', $categoryIds)
             ->where('status', 'active')
             ->get();
@@ -792,7 +792,7 @@ class SubdomainController extends Controller
             $searchResult = [];
 
             if (!empty($search)) {
-                $data = Product::where('store_id', $store)->where('status', 'active')
+                $data = Product::where('store_id', (string) $store)->where('status', 'active')
                     ->where(function ($query) use ($search) {
                         $query->where('name', 'LIKE', "%$search%")
                             ->orWhere('tags', 'LIKE', "%$search%")
@@ -1832,7 +1832,7 @@ class SubdomainController extends Controller
 
             $data = Product::where('tags', 'like', "%$tag%")
                 ->where('status', 'active')
-                ->where('store_id', $store)
+                ->where('store_id', (string) $store)
                 ->inRandomOrder()
                 ->limit(4)
                 ->get();

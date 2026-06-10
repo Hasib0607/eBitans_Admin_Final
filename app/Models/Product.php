@@ -18,11 +18,12 @@ class Product extends Model
 
     public function scopeConvertCurrency($query, $store_id)
     {
-        $store = StoreCurrencyContext::get((int) $store_id);
+        $productStoreId = (string) $store_id;
+        $store = StoreCurrencyContext::get((int) $productStoreId);
         if (!$store) {
             return $query->select("products.*", 'currencies.symbol', 'currencies.code')
                 ->join('currencies', 'products.currency_id', '=', 'currencies.id')
-                ->where('products.store_id', $store_id);
+                ->where('products.store_id', $productStoreId);
         }
 
         $current_currency = $store->current_currency ?: StoreCurrencyContext::defaultCurrency();
@@ -46,7 +47,7 @@ class Product extends Model
                         DB::raw("'{$current_currency->symbol}' as symbol")
                     ]);
                 })
-            ->where('products.store_id', $store_id);
+            ->where('products.store_id', $productStoreId);
     }
 
     public function storeInfo()

@@ -562,12 +562,13 @@ class StorefrontController extends Controller
 
     private function getProductCategoryCounts(int $storeId): array
     {
+        $productStoreId = (string) $storeId;
         $counts = [
             'category' => [],
             'subcategory' => [],
         ];
 
-        Product::where('store_id', $storeId)
+        Product::where('store_id', $productStoreId)
             ->where('status', 'active')
             ->get(['category', 'subcategory'])
             ->each(function ($product) use (&$counts) {
