@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Services\Storefront\StoreCurrencyContext;
 use Illuminate\Support\Facades\DB;
 
 class Veriant extends Model
@@ -19,9 +20,9 @@ class Veriant extends Model
             $storeID = $userData['store_id'] ?? "";
         }
         $store_id = $store_id ?? $storeID ?? "";
-        $store = Store::with('current_currency')->find($store_id);
+        $store = StoreCurrencyContext::get((int) $store_id);
         if (isset($store)) {
-            $current_currency = $store->current_currency;
+            $current_currency = $store->current_currency ?: StoreCurrencyContext::defaultCurrency();
             $query->select('veriants.*', 'c.symbol', 'c.code')
                 ->join('products as p', 'p.id', '=', 'veriants.pid')
                 ->join('currencies as c', 'p.currency_id', '=', 'c.id')

@@ -33,7 +33,9 @@ class StorefrontProductPresenter
     public function detail($product, $variants, array $categories, array $subcategories, $layout = null): array
     {
         $images = $this->productImages($product);
-        $averageRating = $product->reviews_count > 0 ? $product->reviews_sum_rating / $product->reviews_count : 0;
+        $averageRating = isset($product->reviews_avg_rating)
+            ? (float) $product->reviews_avg_rating
+            : ($product->reviews_count > 0 ? $product->reviews_sum_rating / $product->reviews_count : 0);
         $discountPrice = $product->regular_price <= $product->promotional_price ? 0 : $product->promotional_price;
         $calculateRegularPrice = getPrice($product->regular_price, $discountPrice, $product->discount_type);
 

@@ -3,6 +3,7 @@
 namespace App\Services\Storefront;
 
 use App\Http\Resources\ProductLayoutResource;
+use App\Models\BuyModulus;
 use App\Models\Campaign;
 use App\Models\Category;
 use App\Models\Product;
@@ -23,16 +24,24 @@ class ProductDetailsService
 
     private function build(int $storeId, int $productId): ?array
     {
+        StoreCurrencyContext::get($storeId);
+
+        $customizable = $this->modulusEnabled($storeId, 121);
+        $relations = [
+            'getBrand:id,name',
+            'getSupplier:id,name',
+        ];
+
+        if ($customizable) {
+            $relations['layout'] = fn ($query) => $query->orderBy('position', 'asc');
+        }
+
         $product = Product::convertCurrency($storeId)
             ->where('products.id', $productId)
             ->where('products.status', 'active')
-            ->with([
-                'getBrand:id,name',
-                'getSupplier:id,name',
-                'layout' => fn ($query) => $query->orderBy('position', 'asc'),
-            ])
-            ->withSum('reviews', 'rating')
+            ->with($relations)
             ->withCount('reviews')
+            ->withAvg('reviews', 'rating')
             ->first();
 
         if (!$product) {
@@ -42,9 +51,7 @@ class ProductDetailsService
         $presenter = app(StorefrontProductPresenter::class);
         $images = $presenter->productImages($product);
         $variants = $product->getVariantsWithConversion($storeId)->get();
-        $categories = $this->getCategoriesByIds($this->csvIds($product->category));
-        $subcategories = $this->getCategoriesByIds($this->csvIds($product->subcategory));
-        $customizable = $this->modulusEnabled($storeId, 121);
+        [$categories, $subcategories] = $this->resolveCategoryGroups($product);
         $layout = $customizable
             ? $product->layout
                 ->map(fn ($layout) => (new ProductLayoutResource($layout, $images))->resolve(request()))
@@ -60,6 +67,40 @@ class ProductDetailsService
         $data['product_offer'] = $this->resolveProductOffer($product, $calculateRegularPrice, $storeId);
 
         return $data;
+    }
+
+    private function resolveCategoryGroups($product): array
+    {
+        $categoryIds = $this->csvIds($product->category);
+        $subcategoryIds = $this->csvIds($product->subcategory);
+        $allIds = array_values(array_unique(array_merge($categoryIds, $subcategoryIds)));
+
+        if (empty($allIds)) {
+            return [[], []];
+        }
+
+        $records = Category::query()
+            ->whereIn('id', $allIds)
+            ->where('status', 'active')
+            ->select('id', 'name', 'status')
+            ->get()
+            ->keyBy('id');
+
+        $categories = [];
+        foreach ($categoryIds as $id) {
+            if ($records->has($id)) {
+                $categories[] = $records->get($id);
+            }
+        }
+
+        $subcategories = [];
+        foreach ($subcategoryIds as $id) {
+            if ($records->has($id)) {
+                $subcategories[] = $records->get($id);
+            }
+        }
+
+        return [$categories, $subcategories];
     }
 
     private function resolveProductOffer($product, float $regularPrice, int $storeId): array
@@ -174,26 +215,15 @@ class ProductDetailsService
         ];
     }
 
-    private function getCategoriesByIds(array $ids): array
-    {
-        if (empty($ids)) {
-            return [];
-        }
-
-        return Category::whereIn('id', $ids)
-            ->where('status', 'active')
-            ->select('id', 'name', 'status')
-            ->get()
-            ->all();
-    }
-
     private function modulusEnabled(int $storeId, int $modulusId): bool
     {
-        return (bool) Cache::remember(
-            "modulus_status:{$storeId}:{$modulusId}",
-            now()->addMinutes(10),
-            fn () => ModulusStatus($storeId, $modulusId)
-        );
+        return BuyModulus::query()
+            ->join('moduluses', 'moduluses.id', '=', 'buy_moduluses.modulus_id')
+            ->where('buy_moduluses.store_id', $storeId)
+            ->where('buy_moduluses.modulus_id', $modulusId)
+            ->where('buy_moduluses.status', 1)
+            ->where('moduluses.status', 1)
+            ->exists();
     }
 
     private function csvIds($value): array

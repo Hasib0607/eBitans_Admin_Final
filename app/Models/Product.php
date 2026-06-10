@@ -5,6 +5,7 @@ namespace App\Models;
 use Haruncpi\LaravelIdGenerator\IdGenerator;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Services\Storefront\StoreCurrencyContext;
 use Illuminate\Support\Facades\DB;
 
 class Product extends Model
@@ -17,17 +18,14 @@ class Product extends Model
 
     public function scopeConvertCurrency($query, $store_id)
     {
-        $store = Store::with('current_currency')->find($store_id);
+        $store = StoreCurrencyContext::get((int) $store_id);
         if (!$store) {
             return $query->select("products.*", 'currencies.symbol', 'currencies.code')
                 ->join('currencies', 'products.currency_id', '=', 'currencies.id')
                 ->where('products.store_id', $store_id);
         }
 
-        $current_currency = $store->current_currency;
-        if (!$current_currency) {
-            $current_currency = Currency::where("id", 1)->first();
-        }
+        $current_currency = $store->current_currency ?: StoreCurrencyContext::defaultCurrency();
         return $query->select("products.*", 'currencies.symbol', 'currencies.code')
             ->join('currencies', 'products.currency_id', '=', 'currencies.id')
             ->when('products.currency_id' !== $store->currency && $current_currency->customize_rate_status === 0,

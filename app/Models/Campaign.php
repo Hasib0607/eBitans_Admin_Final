@@ -2,6 +2,7 @@
 
     namespace App\Models;
 
+    use App\Services\Storefront\StoreCurrencyContext;
     use Illuminate\Database\Eloquent\Factories\HasFactory;
     use Illuminate\Database\Eloquent\Model;
     use Illuminate\Support\Facades\DB;
@@ -12,8 +13,14 @@
 
         public function scopeConvertCurrency($query, $store_id)
         {
-            $store = Store::with('current_currency')->find($store_id);
-            $current_currency = $store->current_currency;
+            $store = StoreCurrencyContext::get((int) $store_id);
+            if (!$store) {
+                return $query->select("campaigns.*", 'currencies.symbol', 'currencies.id as currency')
+                    ->join('currencies', 'campaigns.currency_id', '=', 'currencies.id')
+                    ->where('campaigns.store_id', $store_id);
+            }
+
+            $current_currency = $store->current_currency ?: StoreCurrencyContext::defaultCurrency();
             return $query->select("campaigns.*", 'currencies.symbol', 'currencies.id as currency')
                 ->join('currencies', 'campaigns.currency_id', '=', 'currencies.id')
                 ->when('campaigns.currency_id' !== $store->currency && $current_currency->customize_rate_status === 0,
