@@ -316,7 +316,7 @@ class StorefrontController extends Controller
         $headerSetting = $this->getHeaderSetting($storeId);
         $customDesign = $this->getCustomDesign($storeId, $request);
         $totalSms = (int) getSmsCount($storeId);
-        $allowOrder = $totalSms > 0;
+        $allowOrder = checkOrderLimit($storeId);
 
         if (!$headerSetting) {
             return [
@@ -491,14 +491,10 @@ class StorefrontController extends Controller
             ->where('store_id', $storeId)
             ->get();
 
-        $grouped = collect(CustomDesignResource::collection($designs)->resolve($request))
+        return collect(CustomDesignResource::collection($designs)->resolve($request))
             ->groupBy(fn ($item) => $this->normalizeSectionName($item['type'] ?? ''))
             ->map(fn ($items) => $items->values()->all())
             ->all();
-
-        $defaults = array_fill_keys($this->customDesignTypes(), []);
-
-        return array_replace($defaults, array_intersect_key($grouped, $defaults));
     }
 
     private function getTestimonials(int $storeId)
@@ -780,17 +776,6 @@ class StorefrontController extends Controller
             'best_sell_products' => [],
             'new_arrival_products' => [],
             'brand' => [],
-        ];
-    }
-
-    private function customDesignTypes(): array
-    {
-        return [
-            'youtube',
-            'testimonial',
-            'banner',
-            'banner_bottom',
-            'hero_slider',
         ];
     }
 
