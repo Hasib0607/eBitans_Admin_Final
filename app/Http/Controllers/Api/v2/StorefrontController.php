@@ -283,6 +283,48 @@ class StorefrontController extends Controller
         }
     }
 
+    public function robots(Request $request, string $domain)
+    {
+        try {
+            $store = app(StorefrontStoreResolver::class)->resolve($domain);
+
+            if (!$store) {
+                if ($request->wantsJson() || $request->query('format') === 'json') {
+                    return response()->json(['status' => false, 'message' => 'Store not found!'], 404);
+                }
+
+                return response("User-agent: *\nDisallow: /", 404, [
+                    'Content-Type' => 'text/plain; charset=UTF-8',
+                ]);
+            }
+
+            $content = $this->buildRobotsTxt($store);
+
+            if ($request->wantsJson() || $request->query('format') === 'json') {
+                return response()->json([
+                    'status' => true,
+                    'message' => 'Success',
+                    'data' => [
+                        'content' => $content,
+                    ],
+                ])->header('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
+            }
+
+            return response($content, 200, [
+                'Content-Type' => 'text/plain; charset=UTF-8',
+                'Cache-Control' => 'public, s-maxage=3600, stale-while-revalidate=86400',
+            ]);
+        } catch (\Exception $exception) {
+            if ($request->wantsJson() || $request->query('format') === 'json') {
+                return serverError();
+            }
+
+            return response("User-agent: *\nDisallow: /", 500, [
+                'Content-Type' => 'text/plain; charset=UTF-8',
+            ]);
+        }
+    }
+
     private function getDesign(int $storeId): ?array
     {
         $cacheKey = "design_layout_store_v2_{$storeId}";
@@ -414,7 +456,19 @@ class StorefrontController extends Controller
 
     private function getMenu(int $storeId)
     {
-        return Menu::where('store_id', $storeId)->orderBy('sort', 'ASC')->get();
+        return Menu::where('store_id', $storeId)
+            ->orderBy('sort', 'ASC')
+            ->get()
+            ->map(function ($menu) {
+                $menu->url = $this->relativizeStoreLink($menu->url);
+                $menu->custom_link = $this->relativizeStoreLink($menu->custom_link);
+
+                if (empty($menu->url) && !empty($menu->custom_link)) {
+                    $menu->url = $menu->custom_link;
+                }
+
+                return $menu;
+            });
     }
 
     private function getPages(int $storeId)
@@ -762,6 +816,57 @@ class StorefrontController extends Controller
         unset($data['bkash_token']);
 
         return $data;
+    }
+
+    private function buildRobotsTxt(object $store): string
+    {
+        $siteUrl = $this->storeSiteUrl($store);
+
+        return implode("\n", [
+            'User-agent: *',
+            'Allow: /',
+            '',
+            'Disallow: /checkout',
+            'Disallow: /cart',
+            'Disallow: /profile',
+            'Disallow: /login',
+            '',
+            'Sitemap: ' . $siteUrl . '/sitemap.xml',
+            '',
+        ]);
+    }
+
+    private function storeSiteUrl(object $store): string
+    {
+        $domain = trim((string) ($store->url ?? ''));
+
+        if ($domain === '') {
+            return 'https://' . trim((string) ($store->slug ?? ''), '/');
+        }
+
+        if (str_starts_with($domain, 'http://') || str_starts_with($domain, 'https://')) {
+            return rtrim($domain, '/');
+        }
+
+        return 'https://' . ltrim($domain, '/');
+    }
+
+    private function relativizeStoreLink(?string $link): ?string
+    {
+        if (empty($link)) {
+            return $link;
+        }
+
+        $link = trim($link);
+
+        if (!str_starts_with($link, 'http://') && !str_starts_with($link, 'https://')) {
+            return ltrim($link, '/');
+        }
+
+        $path = parse_url($link, PHP_URL_PATH) ?? '';
+        $path = trim($path, '/');
+
+        return $path === '' ? '' : $path;
     }
 
     private function emptyHomeData(array $layout): array

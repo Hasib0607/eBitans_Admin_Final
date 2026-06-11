@@ -240,6 +240,7 @@ Route::group(['prefix' => 'v2'], function () {
     Route::get('/storefront/home/{domain}', [StorefrontController::class, 'home']);
     Route::get('/storefront/product-page/{domain}/{product}', [StorefrontController::class, 'productPage']);
     Route::get('/storefront/shell/{domain}', [StorefrontController::class, 'shell']);
+    Route::get('/storefront/robots/{domain}', [StorefrontController::class, 'robots']);
 
     Route::get('/get/attribute/{store}/{name}', [SubdomainController::class, 'getAttribute']);
     //My code here end
