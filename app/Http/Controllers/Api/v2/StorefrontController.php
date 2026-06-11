@@ -957,16 +957,6 @@ class StorefrontController extends Controller
             $addUrl($menu->url ?: 'home', $menu->updated_at ?? null);
         }
 
-        foreach ($this->getPages((int) $store->id) as $page) {
-            $slug = trim((string) ($page->slug ?? ''));
-
-            if ($slug === '') {
-                continue;
-            }
-
-            $addUrl($slug, $page->updated_at ?? null);
-        }
-
         AdminBlog::query()
             ->select('slug', 'permalink', 'updated_at')
             ->where('store_id', $store->id)
