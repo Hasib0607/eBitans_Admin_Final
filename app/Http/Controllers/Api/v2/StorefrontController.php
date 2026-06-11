@@ -10,6 +10,7 @@ use App\Http\Resources\CustomDesignResource;
 use App\Http\Resources\ProductLayoutResource;
 use App\Http\Resources\SliderResource;
 use App\Http\Resources\TestimonialResource;
+use App\Models\AdminBlog;
 use App\Models\Banner;
 use App\Models\Brand;
 use App\Models\Category;
@@ -321,6 +322,50 @@ class StorefrontController extends Controller
 
             return response("User-agent: *\nDisallow: /", 500, [
                 'Content-Type' => 'text/plain; charset=UTF-8',
+            ]);
+        }
+    }
+
+    public function sitemap(Request $request, string $domain)
+    {
+        try {
+            $store = app(StorefrontStoreResolver::class)->resolve($domain);
+
+            if (!$store) {
+                if ($this->sitemapWantsJson($request)) {
+                    return response()->json(['status' => false, 'message' => 'Store not found!'], 404);
+                }
+
+                return response($this->buildSitemapXml([]), 404, [
+                    'Content-Type' => 'application/xml; charset=UTF-8',
+                ]);
+            }
+
+            $urls = $this->getSitemapUrls($store);
+            $content = $this->buildSitemapXml($urls);
+
+            if ($this->sitemapWantsJson($request)) {
+                return response()->json([
+                    'status' => true,
+                    'message' => 'Success',
+                    'data' => [
+                        'content' => $content,
+                        'urls' => $urls,
+                    ],
+                ])->header('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
+            }
+
+            return response($content, 200, [
+                'Content-Type' => 'application/xml; charset=UTF-8',
+                'Cache-Control' => 'public, s-maxage=3600, stale-while-revalidate=86400',
+            ]);
+        } catch (\Exception $exception) {
+            if ($this->sitemapWantsJson($request)) {
+                return serverError();
+            }
+
+            return response($this->buildSitemapXml([]), 500, [
+                'Content-Type' => 'application/xml; charset=UTF-8',
             ]);
         }
     }
@@ -867,6 +912,174 @@ class StorefrontController extends Controller
         $path = trim($path, '/');
 
         return $path === '' ? '' : $path;
+    }
+
+    private function getSitemapUrls(object $store): array
+    {
+        $version = app(StorefrontCache::class)->version((int) $store->id);
+
+        return Cache::remember(
+            "storefront:sitemap:{$store->id}:v{$version}",
+            now()->addHour(),
+            fn () => $this->buildSitemapUrls($store)
+        );
+    }
+
+    private function buildSitemapUrls(object $store): array
+    {
+        $siteUrl = $this->storeSiteUrl($store);
+        $urls = [];
+        $seen = [];
+
+        $addUrl = function (?string $path, $lastmod = null) use (&$urls, &$seen, $siteUrl) {
+            $path = trim((string) $path, '/');
+
+            if ($path === '') {
+                $path = 'home';
+            }
+
+            if (isset($seen[$path])) {
+                return;
+            }
+
+            $seen[$path] = true;
+            $urls[] = [
+                'loc' => $siteUrl . '/' . $path,
+                'lastmod' => $this->formatSitemapLastmod($lastmod),
+            ];
+        };
+
+        foreach ($this->getMenu((int) $store->id) as $menu) {
+            if ((string) ($menu->status ?? '') !== '1') {
+                continue;
+            }
+
+            $addUrl($menu->url ?: 'home', $menu->updated_at ?? null);
+        }
+
+        foreach ($this->getPages((int) $store->id) as $page) {
+            $slug = trim((string) ($page->slug ?? ''));
+
+            if ($slug === '') {
+                continue;
+            }
+
+            $addUrl($slug, $page->updated_at ?? null);
+        }
+
+        AdminBlog::query()
+            ->select('slug', 'permalink', 'updated_at')
+            ->where('store_id', $store->id)
+            ->where('status', 1)
+            ->whereNull('deleted_at')
+            ->orderByDesc('id')
+            ->chunk(500, function ($blogs) use ($addUrl) {
+                foreach ($blogs as $blog) {
+                    $path = trim((string) ($blog->permalink ?: $blog->slug ?: ''));
+
+                    if ($path === '') {
+                        continue;
+                    }
+
+                    $addUrl(str_starts_with($path, 'blog/') ? $path : 'blog/' . ltrim($path, '/'), $blog->updated_at ?? null);
+                }
+            });
+
+        DB::table('products')
+            ->select('id', 'name', 'slug', 'product_link', 'updated_at')
+            ->where('store_id', $store->id)
+            ->where('status', 'active')
+            ->orderByDesc('id')
+            ->chunk(500, function ($products) use ($addUrl) {
+                foreach ($products as $product) {
+                    $addUrl($this->productSitemapPath($product), $product->updated_at ?? null);
+                }
+            });
+
+        return $urls;
+    }
+
+    private function productSitemapPath(object $product): string
+    {
+        $customLink = trim((string) ($product->product_link ?? ''));
+
+        if ($customLink !== '') {
+            $path = $this->relativizeStoreLink($customLink);
+
+            if ($path !== '') {
+                return $path;
+            }
+        }
+
+        return 'product/' . $product->id . '/' . $this->productSlug($product);
+    }
+
+    private function productSlug(object $product): string
+    {
+        $slug = trim((string) ($product->slug ?? ''));
+
+        if ($slug !== '') {
+            return $slug;
+        }
+
+        return generateSlug((string) ($product->name ?? ''), '-');
+    }
+
+    private function buildSitemapXml(array $urls): string
+    {
+        $lines = [
+            '<?xml version="1.0" encoding="UTF-8"?>',
+            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+        ];
+
+        foreach ($urls as $url) {
+            $loc = htmlspecialchars((string) ($url['loc'] ?? ''), ENT_XML1 | ENT_COMPAT, 'UTF-8');
+            $lines[] = '<url>';
+            $lines[] = '<loc>' . $loc . '</loc>';
+
+            if (!empty($url['lastmod'])) {
+                $lastmod = htmlspecialchars((string) $url['lastmod'], ENT_XML1 | ENT_COMPAT, 'UTF-8');
+                $lines[] = '<lastmod>' . $lastmod . '</lastmod>';
+            }
+
+            $lines[] = '</url>';
+        }
+
+        $lines[] = '</urlset>';
+
+        return implode("\n", $lines) . "\n";
+    }
+
+    private function formatSitemapLastmod($value): ?string
+    {
+        if (empty($value)) {
+            return null;
+        }
+
+        try {
+            return \Carbon\Carbon::parse($value)->toAtomString();
+        } catch (\Exception $exception) {
+            return null;
+        }
+    }
+
+    private function sitemapWantsJson(Request $request): bool
+    {
+        if ($request->query('format') === 'xml') {
+            return false;
+        }
+
+        if ($request->query('format') === 'json') {
+            return true;
+        }
+
+        $accept = strtolower((string) $request->header('Accept', ''));
+
+        if (str_contains($accept, 'application/xml') || str_contains($accept, 'text/xml')) {
+            return false;
+        }
+
+        return $request->wantsJson() || $accept === '' || str_contains($accept, 'application/json') || str_contains($accept, '*/*');
     }
 
     private function emptyHomeData(array $layout): array
