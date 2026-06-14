@@ -12,7 +12,7 @@ class AccountDomainConnector
 {
     public function connect(Domain $domain, array $options = []): array
     {
-        $token = (string) config('services.account_domain.token');
+        $token = $this->configuredToken('token');
 
         if ($token === '') {
             $this->markFailed($domain, 'Account domain API token is not configured.');
@@ -48,7 +48,7 @@ class AccountDomainConnector
         }
 
         if (!$this->isSuccessfulOrExisting($hostingResponse->status())) {
-            $message = $this->failureMessage($hostingResponse->status(), $hostingResponse->json());
+            $message = $this->failureMessage($hostingResponse->status(), $hostingResponse->json(), 'Hosting domain');
             $this->markFailed($domain, $message);
 
             return [
@@ -68,7 +68,7 @@ class AccountDomainConnector
             : 'Successfully add domain on hosting server; assigning frontend project';
         $domain->save();
 
-        $projectToken = (string) config('services.account_domain.project_token');
+        $projectToken = $this->configuredToken('project_token');
         if ($projectToken === '') {
             $message = 'Frontend project domain API token is not configured.';
             $this->markFailed($domain, $message);
@@ -107,7 +107,7 @@ class AccountDomainConnector
         }
 
         if (!$this->isSuccessfulOrExisting($projectResponse->status())) {
-            $message = $this->failureMessage($projectResponse->status(), $projectResponse->json());
+            $message = $this->failureMessage($projectResponse->status(), $projectResponse->json(), 'Frontend project domain');
             $this->markFailed($domain, 'Frontend project assignment failed: ' . $message);
 
             return [
@@ -143,7 +143,7 @@ class AccountDomainConnector
 
     public function connectBulk(array $domains, array $options = []): array
     {
-        $token = (string) config('services.account_domain.token');
+        $token = $this->configuredToken('token');
 
         if ($token === '') {
             return [
@@ -177,14 +177,14 @@ class AccountDomainConnector
         return [
             'status' => $response->successful(),
             'code' => $response->status(),
-            'message' => $this->failureMessage($response->status(), $response->json()),
+            'message' => $this->failureMessage($response->status(), $response->json(), 'Hosting domain'),
             'response' => $response->json(),
         ];
     }
 
     private function endpoint(string $path): string
     {
-        return rtrim((string) config('services.account_domain.base_url'), '/') . $path;
+        return rtrim(trim((string) config('services.account_domain.base_url')), '/') . $path;
     }
 
     private function isSuccessfulOrExisting(int $status): bool
@@ -202,7 +202,7 @@ class AccountDomainConnector
             ])
             ->timeout((int) config('services.account_domain.timeout', 30));
 
-        $csrfToken = (string) config('services.account_domain.csrf_token', '');
+        $csrfToken = trim((string) config('services.account_domain.csrf_token', ''));
         if ($csrfToken !== '') {
             $client = $client->withHeaders([
                 'X-CSRF-TOKEN' => $csrfToken,
@@ -210,7 +210,7 @@ class AccountDomainConnector
             ]);
         }
 
-        $csrfCookie = (string) config('services.account_domain.csrf_cookie', '');
+        $csrfCookie = trim((string) config('services.account_domain.csrf_cookie', ''));
         if ($csrfCookie !== '') {
             $client = $client->withHeaders([
                 'Cookie' => $csrfCookie,
@@ -220,13 +220,39 @@ class AccountDomainConnector
         return $client;
     }
 
-    private function failureMessage(int $status, $body): string
+    private function configuredToken(string $key): string
+    {
+        $token = trim((string) config("services.account_domain.{$key}", ''));
+
+        if (stripos($token, 'Bearer ') === 0) {
+            return trim(substr($token, 7));
+        }
+
+        return $token;
+    }
+
+    private function failureMessage(int $status, $body, string $phase = 'Domain server'): string
     {
         $message = is_array($body) ? ($body['message'] ?? $body['error'] ?? null) : null;
+        $tokenName = stripos($phase, 'frontend') !== false
+            ? 'frontend project domain API token'
+            : 'account domain API token';
+
+        if ($status === 401) {
+            return "{$phase} API token is invalid or expired. Please update the {$tokenName}.";
+        }
+
+        if ($status === 419) {
+            return "{$phase} API CSRF/auth setup is not configured correctly.";
+        }
 
         if (!empty($message)) {
             if (stripos((string) $message, 'csrf') !== false) {
-                return 'Domain server API CSRF/auth setup is not configured correctly.';
+                return "{$phase} API CSRF/auth setup is not configured correctly.";
+            }
+
+            if (stripos((string) $message, 'unauthorized') !== false) {
+                return "{$phase} API token is invalid or expired. Please update the {$tokenName}.";
             }
 
             return (string) $message;
